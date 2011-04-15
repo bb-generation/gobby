@@ -122,6 +122,9 @@ protected:
 	void on_security_policy_changed();
 	void on_trust_file_changed();
 
+	void status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter);
+	
+
 	Gtk::Window& m_parent;
 	const InfcNotePlugin* m_text_plugin;
 	StatusBar& m_status_bar;
@@ -150,6 +153,8 @@ protected:
 	InfGtkBrowserModelSort* m_sort_model;
 
 	Pinning m_pinning;
+
+	Gtk::CellRenderer* renderer;
 };
 
 }

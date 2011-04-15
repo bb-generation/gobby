@@ -26,11 +26,25 @@
 
 #include <gtkmm/stock.h>
 #include <gtkmm/image.h>
+#include <iostream>
 
 #ifndef G_OS_WIN32
 # include <sys/socket.h>
 # include <net/if.h>
 #endif
+
+void Gobby::Browser::status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter)
+{
+	renderer->set_visible(true);
+	//	g_object_set(renderer->gobj(), "stock-id", INF_GTK_BROWSER_MODEL_DISCONNECTED); /* klappt noch nicht */
+	std::cout<<((Gtk::CellRendererPixbuf*)renderer)->property_stock_id()<<std::endl;
+
+	//	(((Gtk::CellRendererPixbuf*)renderer)->property_stock_id())->set_value(GTK_STOCK_ADD);
+	
+	g_object_set(G_OBJECT(renderer->gobj()), "stock-id", GTK_STOCK_ADD, NULL);
+	
+}
+
 
 gint compare_func(GtkTreeModel* model, GtkTreeIter* first, GtkTreeIter* second, gpointer user_data)
 {
@@ -40,6 +54,7 @@ gint compare_func(GtkTreeModel* model, GtkTreeIter* first, GtkTreeIter* second, 
 	InfcBrowserIter* bri_one;
 	InfcBrowserIter* bri_two;
 	GtkTreeIter parent;
+	
 
 	result = 0;
 	if(gtk_tree_model_iter_parent(model, &parent, first))
@@ -196,6 +211,16 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	pack_start(m_expander, Gtk::PACK_SHRINK);
 
 	set_focus_child(m_expander);
+
+	renderer = new Gtk::CellRendererPixbuf;
+	
+	
+	inf_gtk_browser_view_set_status_cell_renderer(m_browser_view, renderer->gobj());
+	
+	Gtk::TreeViewColumn *col = Glib::wrap(inf_gtk_browser_view_get_column(m_browser_view));
+	
+	col->set_cell_data_func((*renderer), sigc::mem_fun(*this, &Browser::status_icon_data_func));
+	
 }
 
 Gobby::Browser::~Browser()
@@ -209,6 +234,9 @@ Gobby::Browser::~Browser()
 
 	if(m_sasl_context)
 		inf_sasl_context_unref(m_sasl_context);
+
+	delete renderer;
+	
 
 	g_object_unref(m_browser_store);
 	g_object_unref(m_sort_model);
@@ -507,3 +535,5 @@ void Gobby::Browser::on_trust_file_changed()
 	g_object_set(G_OBJECT(m_cert_manager), "trust-file",
 		     trust_file.empty() ? NULL : trust_file.c_str(), NULL);
 }
+
+
