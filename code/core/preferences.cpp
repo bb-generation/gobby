@@ -183,12 +183,33 @@ void Gobby::Preferences::Security::serialize(Config::ParentEntry& entry) const
 	entry.set_value("policy", static_cast<int>(policy));
 }
 
+Gobby::Preferences::Connection::Connection(Config::ParentEntry& entry):
+		use_keepalive(entry.get_value<bool>(
+			"use-keepalive", true)), //TODO default
+		tcp_keepalive_time(entry.get_value<unsigned int>(
+			"tcp-keepalive-time", 15)), //TODO default value
+		tcp_keepalive_intvl(entry.get_value<unsigned int>(
+			"tcp-keepalive-intvl", 15)), //TODO default value
+		tcp_keepalive_probes(entry.get_value<unsigned int>(
+			"tcp-keepalive-probes", 2)) //TODO default value
+{
+}
+
+void Gobby::Preferences::Connection::serialize(Config::ParentEntry& entry) const
+{
+	entry.set_value("use-keepalive", use_keepalive);
+	entry.set_value("tcp-keepalive-time", tcp_keepalive_time);
+	entry.set_value("tcp-keepalive-intvl", tcp_keepalive_intvl);
+	entry.set_value("tcp-keepalive-probes", tcp_keepalive_probes);
+}
+
 Gobby::Preferences::Preferences(Config& config):
 	user(config.get_root()["user"]),
 	editor(config.get_root()["editor"]),
 	view(config.get_root()["view"]),
 	appearance(config.get_root()["appearance"]),
-	security(config.get_root()["security"])
+	security(config.get_root()["security"]),
+	connection(config.get_root()["connection"])
 {
 }
 
@@ -200,5 +221,5 @@ void Gobby::Preferences::serialize(Config& config) const
 	view.serialize(config.get_root()["view"]);
 	appearance.serialize(config.get_root()["appearance"]);
 	security.serialize(config.get_root()["security"]);
+	connection.serialize(config.get_root()["connection"]);
 }
-
