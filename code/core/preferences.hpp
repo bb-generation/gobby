@@ -175,11 +175,25 @@ public:
 		Option<InfXmppConnectionSecurityPolicy> policy;
 	};
 
+	class Connection
+	{
+	public:
+		Connection(Config::ParentEntry& entry);
+		void serialize(Config::ParentEntry& entry) const;
+
+		Option<int> use_keepalive;
+
+		Option<int> tcp_keepalive_time;
+		Option<int> tcp_keepalive_intvl;
+		Option<int> tcp_keepalive_probes;
+	};
+
 	User user;
 	Editor editor;
 	View view;
 	Appearance appearance;
 	Security security;
+	Connection connection;
 };
 
 template<typename Type>
