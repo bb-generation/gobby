@@ -26,6 +26,8 @@
 
 #include <gtkmm/stock.h>
 #include <gtkmm/image.h>
+#include <gtkmm/cellrendererspin.h>
+#include <gtkmm/widget.h>
 #include <iostream>
 
 #ifndef G_OS_WIN32
@@ -35,13 +37,42 @@
 
 void Gobby::Browser::status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter)
 {
-	renderer->set_visible(true);
-	//	g_object_set(renderer->gobj(), "stock-id", INF_GTK_BROWSER_MODEL_DISCONNECTED); /* klappt noch nicht */
-	std::cout<<((Gtk::CellRendererPixbuf*)renderer)->property_stock_id()<<std::endl;
+	Gtk::TreeRow row = *iter;
 
-	//	(((Gtk::CellRendererPixbuf*)renderer)->property_stock_id())->set_value(GTK_STOCK_ADD);
+	InfcBrowser* browser;
+	InfcBrowserIter* browser_iter;
 	
-	g_object_set(G_OBJECT(renderer->gobj()), "stock-id", GTK_STOCK_ADD, NULL);
+	renderer->set_visible(true);
+	
+	if(row.parent()) {
+		//parent exists -> no server entry
+
+		gtk_tree_model_get(
+				   GTK_TREE_MODEL(m_sort_model),
+				   iter.gobj(),
+				   INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser,
+				   INF_GTK_BROWSER_MODEL_COL_NODE, &browser_iter,
+				   -1
+				   );
+
+		if(infc_browser_iter_is_subdirectory(browser, browser_iter))
+			((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_DIRECTORY;
+		else
+			((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_FILE;
+
+		infc_browser_iter_free(browser_iter);
+		g_object_unref(G_OBJECT(browser));
+	}
+	else { //server entry
+	    if(((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() == GTK_STOCK_YES) {
+		((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_YES;
+	    } else {
+		((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_NO;
+	    }
+	    
+	}
+	
+	//	g_object_set(G_OBJECT(renderer->gobj()), "stock-id", GTK_STOCK_ADD, NULL);
 	
 }
 
@@ -212,7 +243,7 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 
 	set_focus_child(m_expander);
 
-	renderer = new Gtk::CellRendererPixbuf;
+	renderer = new CellRendererPixbuf;
 	
 	
 	inf_gtk_browser_view_set_status_cell_renderer(m_browser_view, renderer->gobj());
@@ -536,4 +567,67 @@ void Gobby::Browser::on_trust_file_changed()
 		     trust_file.empty() ? NULL : trust_file.c_str(), NULL);
 }
 
+
+
+
+
+////////////// Pixbuf
+/*
+void Gobby::CellRendererPixbuf::status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter)
+{
+	Gtk::TreeRow row = *iter;
+
+	InfcBrowser* browser;
+	InfcBrowserIter* browser_iter;
+	
+	renderer->set_visible(true);
+	
+	if(row.parent()) {
+		//parent exists -> no server entry
+		  Inner node 
+		gtk_tree_model_get(
+				   GTK_TREE_MODEL(m_sort_model),
+				   iter.gobj(),
+				   INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser,
+				   INF_GTK_BROWSER_MODEL_COL_NODE, &browser_iter,
+				   -1
+				   );
+
+		if(infc_browser_iter_is_subdirectory(browser, browser_iter))
+		    ((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = Gtk::GTK_STOCK_DIRECTORY;
+		else
+		    ((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = Gtk::GTK_STOCK_FILE;
+
+		infc_browser_iter_free(browser_iter);
+		g_object_unref(G_OBJECT(browser));
+	}
+	else { //server entry		
+		((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_ADD;
+	}
+}
+*/
+Gobby::CellRendererPixbuf::CellRendererPixbuf()
+    : Gtk::CellRendererPixbuf::CellRendererPixbuf()
+{
+    this->property_mode() = Gtk::CELL_RENDERER_MODE_ACTIVATABLE;
+    
+    //    this->gobj()->activatable = TRUE;
+    //    g_object_notify (G_OBJECT (this->gobj()), "activatable");
+}
+
+
+bool Gobby::CellRendererPixbuf::activate_vfunc(GdkEvent* event, Gtk::Widget& widget,
+		    const Glib::ustring& path,
+		    const Gdk::Rectangle& background_area,
+		    const Gdk::Rectangle& cell_area,
+		    Gtk::CellRendererState flags)
+{
+    if(this->property_stock_id() == GTK_STOCK_YES) {
+	this->property_stock_id() = GTK_STOCK_NO;
+    } else {
+	this->property_stock_id() = GTK_STOCK_YES;
+    }
+    
+    printf("Klick!\n");
+}
 
