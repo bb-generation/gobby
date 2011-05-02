@@ -147,6 +147,9 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 
 	set_default_size(800, 600);
 	set_role("Gobby");
+
+        Glib::ustring str;
+        m_browser.connect_to_host(str);
 }
 
 Gobby::Window::~Window()
