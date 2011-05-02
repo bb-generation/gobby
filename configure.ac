@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT([gobby], [0.4.94], [crew@0x539.de])
+AC_INIT([gobby], [0.4.95], [crew@0x539.de])
 AM_INIT_AUTOMAKE(1.9 check-news)
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES])
 AM_MAINTAINER_MODE
@@ -89,14 +89,14 @@ AC_CACHE_SAVE
 ###################################
 
 PKG_CHECK_MODULES([gobby], [$required_libs])
-PKG_CHECK_MODULES([infinote], [libinfinity-0.5 libinftext-0.5 libinfgtk-0.5 libinftextgtk-0.5])
+PKG_CHECK_MODULES([infinote], [libinfinity-0.6 libinftext-0.6 libinfgtk-0.6 libinftextgtk-0.6])
 AC_CACHE_SAVE
 
 ###################################
 # Check libinfinity GTK+ version
 ###################################
 
-inf_gtk_version=`pkg-config --variable=gtk_version libinfgtk-0.5`
+inf_gtk_version=`pkg-config --variable=gtk_version libinfgtk-0.6`
 if test "$inf_gtk_version" != "$gtk_version"; then
 	AC_MSG_ERROR([Gobby is being built with GTK+ $gtk_version but libinfinity was built against GTK+ $inf_gtk_version])
 fi
@@ -109,20 +109,20 @@ AC_ARG_WITH([unique], AS_HELP_STRING([--with-unique],
             [Enables support for single-instance [[default=auto]]]),
             [use_unique=$withval], [use_unique=auto])
 
-# Ignore this setting if not using unique,
-# we might later use GtkApplication instead
 if test "$with_gtk3" != "yes"; then
-  if test "x$use_unique" = "xauto"; then
-    PKG_CHECK_MODULES([unique], [unique-1.0 >= 1.1.2], [use_unique=yes], [use_unique=no])
-  elif test "x$use_unique" = "xyes"; then
-    PKG_CHECK_MODULES([unique], [unique-1.0 >= 1.1.2])
-  fi
-
-  if test "x$use_unique" = "xyes"; then
-    AC_DEFINE([WITH_UNIQUE], 1, [Whether support for unique is enabled])
-  fi
+  unique_req="unique-1.0 >= 1.1.2"
 else
-  use_unique="no"
+  unique_req="unique-3.0"
+fi
+
+if test "x$use_unique" = "xauto"; then
+  PKG_CHECK_MODULES([unique], [$unique_req], [use_unique=yes], [use_unique=no])
+elif test "x$use_unique" = "xyes"; then
+  PKG_CHECK_MODULES([unique], [$unique_req])
+fi
+
+if test "x$use_unique" = "xyes"; then
+  AC_DEFINE([WITH_UNIQUE], 1, [Whether support for unique is enabled])
 fi
 
 AM_CONDITIONAL([WITH_UNIQUE], test "x$use_unique" = "xyes")

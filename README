@@ -33,6 +33,7 @@ Gobby: First Contact
      * Each user has its own colour to be identified by others
      * Local group Undo
      * IRC-like chat
+     * Shows cursors and selections of remote users
      * Sidebar with all the others having joined the session
      * Syntax highlighting, auto indentation, configurable tab
        width
@@ -56,7 +57,7 @@ Gobby: First Contact
 
      * libsigc++ (>= 2.0.2)
      * GNUTLS (>= 1.7.2)
-     * libinfinity (0.5.x)
+     * libinfinity (0.6.x)
      * Gtk+ (>= 2.12.0)
      * Glib (>= 2.18.0)
      * GtkSourceView (>= 2.0)
