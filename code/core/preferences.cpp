@@ -183,15 +183,16 @@ void Gobby::Preferences::Security::serialize(Config::ParentEntry& entry) const
 	entry.set_value("policy", static_cast<int>(policy));
 }
 
+// TODO: use global default values for gobby/infinoted?
 Gobby::Preferences::Connection::Connection(Config::ParentEntry& entry):
-		use_keepalive(entry.get_value<bool>(
-			"use-keepalive", true)), //TODO default
-		tcp_keepalive_time(entry.get_value<unsigned int>(
-			"tcp-keepalive-time", 15)), //TODO default value
-		tcp_keepalive_intvl(entry.get_value<unsigned int>(
-			"tcp-keepalive-intvl", 15)), //TODO default value
-		tcp_keepalive_probes(entry.get_value<unsigned int>(
-			"tcp-keepalive-probes", 2)) //TODO default value
+		use_keepalive(entry.get_value<int>(
+			"use-keepalive", 1)),
+		tcp_keepalive_time(entry.get_value<int>(
+			"tcp-keepalive-time", 15)),
+		tcp_keepalive_intvl(entry.get_value<int>(
+			"tcp-keepalive-intvl", 15)),
+		tcp_keepalive_probes(entry.get_value<int>(
+			"tcp-keepalive-probes", 2))
 {
 }
 
@@ -223,3 +224,4 @@ void Gobby::Preferences::serialize(Config& config) const
 	security.serialize(config.get_root()["security"]);
 	connection.serialize(config.get_root()["connection"]);
 }
+

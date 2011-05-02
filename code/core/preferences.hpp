@@ -181,11 +181,11 @@ public:
 		Connection(Config::ParentEntry& entry);
 		void serialize(Config::ParentEntry& entry) const;
 
-		Option<bool> use_keepalive;
+		Option<int> use_keepalive;
 
-		Option<unsigned int> tcp_keepalive_time;
-		Option<unsigned int> tcp_keepalive_intvl;
-		Option<unsigned int> tcp_keepalive_probes;
+		Option<int> tcp_keepalive_time;
+		Option<int> tcp_keepalive_intvl;
+		Option<int> tcp_keepalive_probes;
 	};
 
 	User user;
