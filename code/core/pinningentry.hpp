@@ -16,11 +16,9 @@
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef _GOBBY_PINNING_HPP_
-#define _GOBBY_PINNING_HPP_
+#ifndef _GOBBY_PINNING_ENTRY_HPP_
+#define _GOBBY_PINNING_ENTRY_HPP_
 
-#include "preferences.hpp"
-#include "pinningentry.hpp"
 
 #include <map>
 
@@ -28,27 +26,41 @@
 
 #include <libinfinity/common/inf-xmpp-connection.h>
 
-
 namespace Gobby
 {
 
-class Pinning
+class PinningEntry
 {
 public:
-	Pinning(Preferences preferences): m_preferences(preferences) { }
-	
-	std::list<PinningEntry> load_saved_entries();
+	PinningEntry(InfXmppConnection* connection);
 
-	void save_entry(InfXmppConnection* connection);
+	enum PinningProperty {
+		HOST = 0,
+		SERVICE = 1,
+		DEVICE = 2,
+		/* ALIAS, */
+		AUTHTYPE = 4,
+		/* USERNAME, */
+		PASSWORD = 6
+	};
 
-	void remove_entry(InfXmppConnection* connection);
+	InfXmppConnection* create_connection();
+	void set_connection(InfXmppConnection* connection);
+	InfXmppConnection* get_connection();
+
+	void set_property(PinningProperty name,
+			              Glib::ustring value);
+
+	Glib::ustring get_property(PinningProperty name);
 
 protected:
-	typedef std::map<InfXmppConnection*, PinningEntry> PinningEntryMap;
-	PinningEntryMap m_pinning_entries;
-	Preferences m_preferences;
-
+	typedef std::map<PinningProperty, Glib::ustring> PropertyMap;
+	PropertyMap m_properties;
+	
+	InfXmppConnection* connection;
 };
+
+
 
 
 } // namespace Gobby

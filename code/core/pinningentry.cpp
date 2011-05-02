@@ -16,41 +16,4 @@
  * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef _GOBBY_PINNING_HPP_
-#define _GOBBY_PINNING_HPP_
-
-#include "preferences.hpp"
 #include "pinningentry.hpp"
-
-#include <map>
-
-#include <glibmm/ustring.h>
-
-#include <libinfinity/common/inf-xmpp-connection.h>
-
-
-namespace Gobby
-{
-
-class Pinning
-{
-public:
-	Pinning(Preferences preferences): m_preferences(preferences) { }
-	
-	std::list<PinningEntry> load_saved_entries();
-
-	void save_entry(InfXmppConnection* connection);
-
-	void remove_entry(InfXmppConnection* connection);
-
-protected:
-	typedef std::map<InfXmppConnection*, PinningEntry> PinningEntryMap;
-	PinningEntryMap m_pinning_entries;
-	Preferences m_preferences;
-
-};
-
-
-} // namespace Gobby
-
-#endif // _GOBBY_PINNING_HPP_

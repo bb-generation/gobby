@@ -24,7 +24,8 @@ libgobby_core_a_SOURCES = \
 	texttablabel.cpp \
 	titlebar.cpp \
 	userlist.cpp \
-	pinning.cpp
+	pinning.cpp \
+	pinningentry.cpp
 
 noinst_HEADERS = \
         browser.hpp \
@@ -50,7 +51,8 @@ noinst_HEADERS = \
 	texttablabel.hpp \
 	titlebar.hpp \
         userlist.hpp \
-	pinning.hpp
+        pinning.hpp \
+        pinningentry.hpp
 
 appicondir = $(datadir)/pixmaps
 pixmapdir = $(datadir)/pixmaps/gobby-0.5
