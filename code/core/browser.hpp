@@ -122,7 +122,7 @@ protected:
 	void on_security_policy_changed();
 	void on_trust_file_changed();
 
-    	void status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter);
+
 	
 
 	Gtk::Window& m_parent;
@@ -154,24 +154,7 @@ protected:
 
 	Pinning m_pinning;
 
-	Gtk::CellRenderer* renderer;
-};
-
-class CellRendererPixbuf : public Gtk::CellRendererPixbuf
-{
-public:
-
-    CellRendererPixbuf();
-    
-    bool activate_vfunc(GdkEvent* event, Gtk::Widget& widget,
-			const Glib::ustring& path,
-			const Gdk::Rectangle& background_area,
-			const Gdk::Rectangle& cell_area,
-			Gtk::CellRendererState flags);
-    /*    void Gobby::CellRendererPixbuf::status_icon_data_func(
-			Gtk::CellRenderer* ren,
-			Gtk::TreeModel::iterator iter);*/
-
+	CellRendererPixbuf renderer;
 };
 
 }

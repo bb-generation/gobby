@@ -26,8 +26,6 @@
 
 #include <gtkmm/stock.h>
 #include <gtkmm/image.h>
-#include <gtkmm/cellrendererspin.h>
-#include <gtkmm/widget.h>
 #include <iostream>
 
 #ifndef G_OS_WIN32
@@ -35,46 +33,6 @@
 # include <net/if.h>
 #endif
 
-void Gobby::Browser::status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter)
-{
-	Gtk::TreeRow row = *iter;
-
-	InfcBrowser* browser;
-	InfcBrowserIter* browser_iter;
-	
-	renderer->set_visible(true);
-	
-	if(row.parent()) {
-		//parent exists -> no server entry
-
-		gtk_tree_model_get(
-				   GTK_TREE_MODEL(m_sort_model),
-				   iter.gobj(),
-				   INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser,
-				   INF_GTK_BROWSER_MODEL_COL_NODE, &browser_iter,
-				   -1
-				   );
-
-		if(infc_browser_iter_is_subdirectory(browser, browser_iter))
-			((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_DIRECTORY;
-		else
-			((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_FILE;
-
-		infc_browser_iter_free(browser_iter);
-		g_object_unref(G_OBJECT(browser));
-	}
-	else { //server entry
-	    if(((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() == GTK_STOCK_YES) {
-		((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_YES;
-	    } else {
-		((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_NO;
-	    }
-	    
-	}
-	
-	//	g_object_set(G_OBJECT(renderer->gobj()), "stock-id", GTK_STOCK_ADD, NULL);
-	
-}
 
 
 gint compare_func(GtkTreeModel* model, GtkTreeIter* first, GtkTreeIter* second, gpointer user_data)
@@ -243,14 +201,11 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 
 	set_focus_child(m_expander);
 
-	renderer = new CellRendererPixbuf;
-	
-	
-	inf_gtk_browser_view_set_status_cell_renderer(m_browser_view, renderer->gobj());
+	inf_gtk_browser_view_set_status_cell_renderer(m_browser_view, (GtkCellRenderer*)renderer.gobj());
 	
 	Gtk::TreeViewColumn *col = Glib::wrap(inf_gtk_browser_view_get_column(m_browser_view));
 	
-	col->set_cell_data_func((*renderer), sigc::mem_fun(*this, &Browser::status_icon_data_func));
+	col->set_cell_data_func(renderer, sigc::bind(sigc::mem_fun(&renderer, &Gobby::CellRendererPixbuf::status_icon_data_func), m_sort_model));
 	
 }
 
@@ -266,8 +221,6 @@ Gobby::Browser::~Browser()
 	if(m_sasl_context)
 		inf_sasl_context_unref(m_sasl_context);
 
-	delete renderer;
-	
 
 	g_object_unref(m_browser_store);
 	g_object_unref(m_sort_model);
@@ -566,68 +519,3 @@ void Gobby::Browser::on_trust_file_changed()
 	g_object_set(G_OBJECT(m_cert_manager), "trust-file",
 		     trust_file.empty() ? NULL : trust_file.c_str(), NULL);
 }
-
-
-
-
-
-////////////// Pixbuf
-/*
-void Gobby::CellRendererPixbuf::status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter)
-{
-	Gtk::TreeRow row = *iter;
-
-	InfcBrowser* browser;
-	InfcBrowserIter* browser_iter;
-	
-	renderer->set_visible(true);
-	
-	if(row.parent()) {
-		//parent exists -> no server entry
-		  Inner node 
-		gtk_tree_model_get(
-				   GTK_TREE_MODEL(m_sort_model),
-				   iter.gobj(),
-				   INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser,
-				   INF_GTK_BROWSER_MODEL_COL_NODE, &browser_iter,
-				   -1
-				   );
-
-		if(infc_browser_iter_is_subdirectory(browser, browser_iter))
-		    ((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = Gtk::GTK_STOCK_DIRECTORY;
-		else
-		    ((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = Gtk::GTK_STOCK_FILE;
-
-		infc_browser_iter_free(browser_iter);
-		g_object_unref(G_OBJECT(browser));
-	}
-	else { //server entry		
-		((Gtk::CellRendererPixbuf*)renderer)->property_stock_id() = GTK_STOCK_ADD;
-	}
-}
-*/
-Gobby::CellRendererPixbuf::CellRendererPixbuf()
-    : Gtk::CellRendererPixbuf::CellRendererPixbuf()
-{
-    this->property_mode() = Gtk::CELL_RENDERER_MODE_ACTIVATABLE;
-    
-    //    this->gobj()->activatable = TRUE;
-    //    g_object_notify (G_OBJECT (this->gobj()), "activatable");
-}
-
-
-bool Gobby::CellRendererPixbuf::activate_vfunc(GdkEvent* event, Gtk::Widget& widget,
-		    const Glib::ustring& path,
-		    const Gdk::Rectangle& background_area,
-		    const Gdk::Rectangle& cell_area,
-		    Gtk::CellRendererState flags)
-{
-    if(this->property_stock_id() == GTK_STOCK_YES) {
-	this->property_stock_id() = GTK_STOCK_NO;
-    } else {
-	this->property_stock_id() = GTK_STOCK_YES;
-    }
-    
-    printf("Klick!\n");
-}
-

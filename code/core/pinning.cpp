@@ -17,3 +17,64 @@
  */
 
 #include "pinning.hpp"
+
+////////////////////// CellRendererPixBuf ////////////////////////////
+void Gobby::CellRendererPixbuf::status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter, InfGtkBrowserModelSort* model)
+{
+	Gtk::TreeRow row = *iter;
+
+	InfcBrowser* browser;
+	InfcBrowserIter* browser_iter;
+	
+	this->set_visible(true);
+	
+	if(row.parent()) {
+		//parent exists -> no server entry
+
+		gtk_tree_model_get(
+				   GTK_TREE_MODEL(model),
+				   iter.gobj(),
+				   INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser,
+				   INF_GTK_BROWSER_MODEL_COL_NODE, &browser_iter,
+				   -1
+				   );
+
+		if(infc_browser_iter_is_subdirectory(browser, browser_iter))
+			((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_DIRECTORY;
+		else
+			((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_FILE;
+
+		infc_browser_iter_free(browser_iter);
+		g_object_unref(G_OBJECT(browser));
+	}
+	else { //server entry
+	    if(((Gtk::CellRendererPixbuf*)this)->property_stock_id() == GTK_STOCK_YES) {
+		((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_YES;
+	    } else {
+		((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_NO;
+	    }
+	    
+	}
+}
+
+Gobby::CellRendererPixbuf::CellRendererPixbuf()
+    : Gtk::CellRendererPixbuf::CellRendererPixbuf()
+{
+    this->property_mode() = Gtk::CELL_RENDERER_MODE_ACTIVATABLE;
+}
+
+bool Gobby::CellRendererPixbuf::activate_vfunc(GdkEvent* event, Gtk::Widget& widget,
+		    const Glib::ustring& path,
+		    const Gdk::Rectangle& background_area,
+		    const Gdk::Rectangle& cell_area,
+		    Gtk::CellRendererState flags)
+{
+    if(((Gtk::CellRendererPixbuf*)this)->property_stock_id() == GTK_STOCK_YES) {
+	((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_NO;
+    } else {
+	((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_YES;
+    }
+    
+    return true;
+}
+
