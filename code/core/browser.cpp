@@ -114,7 +114,8 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	m_expander(_("_Direct Connection"), true),
 	m_hbox(false, 6),
 	m_label_hostname(_("Host Name:")),
-	m_entry_hostname(config_filename("recent_hosts"), 5)
+	m_entry_hostname(config_filename("recent_hosts"), 5),
+        m_pinning(m_preferences)
 {
 	m_label_hostname.show();
 	m_entry_hostname.get_entry()->signal_activate().connect(
@@ -217,6 +218,10 @@ Gobby::Browser::~Browser()
 	g_object_unref(m_discovery);
 #endif
 	g_object_unref(m_io);
+}
+
+void Gobby::Browser::load_pinning_entries(){
+  //TODO:
 }
 
 void Gobby::Browser::on_expanded_changed()

@@ -21,6 +21,7 @@
 
 #include "core/statusbar.hpp"
 #include "core/preferences.hpp"
+#include "core/pinning.hpp"
 #include "util/resolv.hpp"
 #include "util/historyentry.hpp"
 
@@ -83,6 +84,7 @@ public:
 
 	SignalActivate signal_activate() const { return m_signal_activate; }
 
+      	void load_pinning_entries();
 protected:
 	static void on_set_browser_static(InfGtkBrowserModel* model,
 	                                  GtkTreePath* path,
@@ -146,6 +148,8 @@ protected:
 	SignalActivate m_signal_activate;
 	
 	InfGtkBrowserModelSort* m_sort_model;
+
+	Pinning m_pinning;
 };
 
 }

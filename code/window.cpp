@@ -45,6 +45,7 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 #endif
 	m_header(m_preferences, m_lang_manager),
 	m_browser(*this, Plugins::TEXT, m_statusbar, m_preferences),
+        m_pinning(m_config),
 	m_text_folder(false, m_preferences, m_lang_manager),
 	m_chat_folder(true, m_preferences, m_lang_manager),
 	m_chat_frame(_("Chat"), IconManager::STOCK_CHAT,
@@ -81,12 +82,12 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 	g_signal_connect(app, "message-received",
 	                 G_CALLBACK(on_message_received_static), this);
 #endif // WITH_UNIQUE
-
 	m_chat_frame.signal_show().connect(
 		sigc::mem_fun(*this, &Window::on_chat_show), true);
 	m_chat_frame.signal_hide().connect(
 		sigc::mem_fun(*this, &Window::on_chat_hide), false);
 
+	m_browser.load_pinning_entries();
 	m_header.show();
 	m_browser.show();
 	m_text_folder.show();

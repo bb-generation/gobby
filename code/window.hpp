@@ -41,6 +41,7 @@
 #include "core/header.hpp"
 #include "core/folder.hpp"
 #include "core/browser.hpp"
+#include "core/pinning.hpp"
 #include "core/statusbar.hpp"
 #include "core/preferences.hpp"
 #include "core/filechooser.hpp"
@@ -165,6 +166,7 @@ protected:
 
 	Header m_header;
 	Browser m_browser;
+	Pinning m_pinning;
 	Folder m_text_folder;
 	Folder m_chat_folder;
 	ClosableFrame m_chat_frame;
