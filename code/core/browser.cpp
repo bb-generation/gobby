@@ -295,24 +295,12 @@ void Gobby::Browser::on_resolv_done(ResolvHandle* handle,
 
 		g_object_set(G_OBJECT(connection),
 			"device-index", device_index,
-			NULL);
-
-		g_object_set(G_OBJECT(connection),
 			"keepalive",
 			m_preferences.connection.use_keepalive.get(),
-			NULL);
-
-		g_object_set(G_OBJECT(connection),
 			"keepalive-time",
 			m_preferences.connection.tcp_keepalive_time.get(),
-			NULL);
-
-		g_object_set(G_OBJECT(connection),
 			"keepalive-interval",
 			m_preferences.connection.tcp_keepalive_intvl.get(),
-			NULL);
-
-		g_object_set(G_OBJECT(connection),
 			"keepalive-probes",
 			m_preferences.connection.tcp_keepalive_probes.get(),
 			NULL);
