@@ -71,8 +71,18 @@ bool Gobby::CellRendererPixbuf::activate_vfunc(GdkEvent* event, Gtk::Widget& wid
 		    Gtk::CellRendererState flags)
 {
     Gtk::TreePath gpath(path);
+    int x, y, width, height;
+    int click_x = ((GdkEventButton*)event)->x;
+    int click_y = ((GdkEventButton*)event)->y;
 
-    if(gpath.size() == 1) {	//root node
+    this->get_size(widget, x, y, width, height);
+
+    x += cell_area.get_x();	//get absolute coordinates from tree view
+    y += cell_area.get_y();
+
+    if(gpath.size() == 1 &&
+       click_x > x && click_x < (x+width) &&
+       click_y > y && click_y < (y+height)) {	//root node & click on renderer
 
 	    Gtk::TreeView& view = static_cast<Gtk::TreeView&>(widget);
     
@@ -86,9 +96,9 @@ bool Gobby::CellRendererPixbuf::activate_vfunc(GdkEvent* event, Gtk::Widget& wid
 
 	    InfXmlConnection* con = infc_browser_get_connection(browser);
 	    
-	    g_object_unref(browser);    
+	    g_object_unref(browser); 
     }
 
-    return true;
+    return false;
 }
 
