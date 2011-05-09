@@ -17,88 +17,96 @@
  */
 
 #include "pinning.hpp"
+#include "iconmanager.hpp"
 #include <gtkmm/treeview.h>
 
 ////////////////////// CellRendererPixBuf ////////////////////////////
-void Gobby::CellRendererPixbuf::status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter, InfGtkBrowserModelSort* model)
+void Gobby::CellRendererPixbuf::status_icon_data_func(
+						Gtk::CellRenderer* ren,
+						Gtk::TreeModel::iterator iter,
+						InfGtkBrowserModelSort* model)
 {
 	Gtk::TreeRow row = *iter;
 
 	InfcBrowser* browser;
 	InfcBrowserIter* browser_iter;
-	
+
 	this->set_visible(true);
-	
+
 	if(row.parent()) {
 		//parent exists -> no server entry
 
 		gtk_tree_model_get(
-				   GTK_TREE_MODEL(model),
-				   iter.gobj(),
-				   INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser,
-				   INF_GTK_BROWSER_MODEL_COL_NODE, &browser_iter,
-				   -1
+				  GTK_TREE_MODEL(model),
+				  iter.gobj(),
+				  INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser,
+				  INF_GTK_BROWSER_MODEL_COL_NODE, &browser_iter,
+				  -1
 				   );
 
 		if(infc_browser_iter_is_subdirectory(browser, browser_iter))
-			((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_DIRECTORY;
+			((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
+				GTK_STOCK_DIRECTORY;
 		else
-			((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_FILE;
+			((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
+				GTK_STOCK_FILE;
 
 		infc_browser_iter_free(browser_iter);
 		g_object_unref(G_OBJECT(browser));
 	}
 	else { //server entry
-	    if(((Gtk::CellRendererPixbuf*)this)->property_stock_id() == GTK_STOCK_YES) {
-		((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_YES;
-	    } else {
-		((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_NO;
-	    }
-	    
+		((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
+			((Gtk::StockID)IconManager::STOCK_SERVER_UNSTARRED)
+			.get_string();
 	}
 }
 
 Gobby::CellRendererPixbuf::CellRendererPixbuf()
-    : Gtk::CellRendererPixbuf::CellRendererPixbuf()
+	: Gtk::CellRendererPixbuf::CellRendererPixbuf()
 {
-    this->property_mode() = Gtk::CELL_RENDERER_MODE_ACTIVATABLE;
+	this->property_mode() = Gtk::CELL_RENDERER_MODE_ACTIVATABLE;
 }
 
-bool Gobby::CellRendererPixbuf::activate_vfunc(GdkEvent* event, Gtk::Widget& widget,
+bool Gobby::CellRendererPixbuf::activate_vfunc(
+		    GdkEvent* event,
+		    Gtk::Widget& widget,
 		    const Glib::ustring& path,
 		    const Gdk::Rectangle& background_area,
 		    const Gdk::Rectangle& cell_area,
 		    Gtk::CellRendererState flags)
 {
-    Gtk::TreePath gpath(path);
-    int x, y, width, height;
-    int click_x = ((GdkEventButton*)event)->x;
-    int click_y = ((GdkEventButton*)event)->y;
+	Gtk::TreePath gpath(path);
+	int x, y, width, height;
+	int click_x = ((GdkEventButton*)event)->x;
+	int click_y = ((GdkEventButton*)event)->y;
 
-    this->get_size(widget, x, y, width, height);
+	this->get_size(widget, x, y, width, height);
 
-    x += cell_area.get_x();	//get absolute coordinates from tree view
-    y += cell_area.get_y();
+	x += cell_area.get_x();	//get absolute coordinates from tree view
+	y += cell_area.get_y();
 
-    if(gpath.size() == 1 &&
-       click_x > x && click_x < (x+width) &&
-       click_y > y && click_y < (y+height)) {	//root node & click on renderer
+	if(gpath.size() == 1 &&
+	   click_x > x && click_x < (x+width) &&
+	   click_y > y && click_y < (y+height)) {
+		//root node & click on renderer
 
-	    Gtk::TreeView& view = static_cast<Gtk::TreeView&>(widget);
-    
-	    GtkTreeModel* model = gtk_tree_view_get_model(view.gobj());
+		Gtk::TreeView& view = static_cast<Gtk::TreeView&>(widget);
 
-	    GtkTreeIter iter;
-	    InfcBrowser* browser;
-	    gtk_tree_model_get_iter(model, &iter, gpath.gobj());
+		GtkTreeModel* model = gtk_tree_view_get_model(view.gobj());
 
-	    gtk_tree_model_get(model, &iter, INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser, -1);
+		GtkTreeIter iter;
+		InfcBrowser* browser;
+		gtk_tree_model_get_iter(model, &iter, gpath.gobj());
 
-	    InfXmlConnection* con = infc_browser_get_connection(browser);
-	    
-	    g_object_unref(browser); 
-    }
+		gtk_tree_model_get(model, &iter,
+					   INF_GTK_BROWSER_MODEL_COL_BROWSER,
+					   &browser, -1);
 
-    return false;
+		InfXmlConnection* con = infc_browser_get_connection(browser);
+
+		g_object_unref(browser);
+
+	}
+
+	return false;
 }
-

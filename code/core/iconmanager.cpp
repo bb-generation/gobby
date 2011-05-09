@@ -28,6 +28,8 @@ Gtk::StockID Gobby::IconManager::STOCK_DOCLIST("gobby-document-list");
 Gtk::StockID Gobby::IconManager::STOCK_CHAT("gobby-chat");
 Gtk::StockID Gobby::IconManager::STOCK_USER_COLOR_INDICATOR(
 	"gobby-user-color-indicator");
+Gtk::StockID Gobby::IconManager::STOCK_SERVER_STARRED("gobby-server-starred");
+Gtk::StockID Gobby::IconManager::STOCK_SERVER_UNSTARRED("gobby-server-unstarred");
 
 // TODO: The save-all icon does not match the save icon for toolbar
 // or menu sized items. It is not yet enabled therefore.
@@ -37,6 +39,8 @@ Gobby::IconManager::IconManager():
 	m_is_doclist(GtkCompat::create_icon_set()),
 	m_is_chat(GtkCompat::create_icon_set()),
 	m_is_user_color_indicator(GtkCompat::create_icon_set()),
+	m_is_starred(GtkCompat::create_icon_set()),
+	m_is_unstarred(GtkCompat::create_icon_set()),
 	m_icon_factory(Gtk::IconFactory::create())
 {
 	Gtk::IconTheme::get_default()->append_search_path(PUBLIC_ICONS_DIR);
@@ -70,6 +74,18 @@ Gobby::IconManager::IconManager():
 	                                         _("User Color Indicator"));
 	m_icon_factory->add(STOCK_USER_COLOR_INDICATOR,
 	                    m_is_user_color_indicator);
+
+	Gtk::IconSource starred_source;
+	starred_source.set_icon_name("starred");
+	m_is_starred->add_source(starred_source);
+	Gtk::StockItem starred_item(STOCK_SERVER_STARRED, _("Starred") );
+	m_icon_factory->add(STOCK_SERVER_STARRED, m_is_starred);
+
+	Gtk::IconSource unstarred_source;
+	unstarred_source.set_icon_name("unstarred");
+	m_is_unstarred->add_source(unstarred_source);
+	Gtk::StockItem unstarred_item(STOCK_SERVER_STARRED, _("Unstarred") );
+	m_icon_factory->add(STOCK_SERVER_UNSTARRED, m_is_unstarred);
 
 	m_icon_factory->add_default();
 }
