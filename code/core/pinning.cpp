@@ -17,6 +17,7 @@
  */
 
 #include "pinning.hpp"
+#include <gtkmm/treeview.h>
 
 ////////////////////// CellRendererPixBuf ////////////////////////////
 void Gobby::CellRendererPixbuf::status_icon_data_func(Gtk::CellRenderer* ren, Gtk::TreeModel::iterator iter, InfGtkBrowserModelSort* model)
@@ -69,12 +70,25 @@ bool Gobby::CellRendererPixbuf::activate_vfunc(GdkEvent* event, Gtk::Widget& wid
 		    const Gdk::Rectangle& cell_area,
 		    Gtk::CellRendererState flags)
 {
-    if(((Gtk::CellRendererPixbuf*)this)->property_stock_id() == GTK_STOCK_YES) {
-	((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_NO;
-    } else {
-	((Gtk::CellRendererPixbuf*)this)->property_stock_id() = GTK_STOCK_YES;
-    }
+    Gtk::TreePath gpath(path);
+
+    if(gpath.size() == 1) {	//root node
+
+	    Gtk::TreeView& view = static_cast<Gtk::TreeView&>(widget);
     
+	    GtkTreeModel* model = gtk_tree_view_get_model(view.gobj());
+
+	    GtkTreeIter iter;
+	    InfcBrowser* browser;
+	    gtk_tree_model_get_iter(model, &iter, gpath.gobj());
+
+	    gtk_tree_model_get(model, &iter, INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser, -1);
+
+	    InfXmlConnection* con = infc_browser_get_connection(browser);
+	    
+	    g_object_unref(browser);    
+    }
+
     return true;
 }
 
