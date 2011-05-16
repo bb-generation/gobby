@@ -26,11 +26,14 @@
 
 #include <gtkmm/stock.h>
 #include <gtkmm/image.h>
+#include <iostream>
 
 #ifndef G_OS_WIN32
 # include <sys/socket.h>
 # include <net/if.h>
 #endif
+
+
 
 gint compare_func(GtkTreeModel* model, GtkTreeIter* first, GtkTreeIter* second, gpointer user_data)
 {
@@ -40,6 +43,7 @@ gint compare_func(GtkTreeModel* model, GtkTreeIter* first, GtkTreeIter* second, 
 	InfcBrowserIter* bri_one;
 	InfcBrowserIter* bri_two;
 	GtkTreeIter parent;
+	
 
 	result = 0;
 	if(gtk_tree_model_iter_parent(model, &parent, first))
@@ -196,6 +200,13 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	pack_start(m_expander, Gtk::PACK_SHRINK);
 
 	set_focus_child(m_expander);
+
+	inf_gtk_browser_view_set_status_cell_renderer(m_browser_view, (GtkCellRenderer*)renderer.gobj());
+	
+	Gtk::TreeViewColumn *col = Glib::wrap(inf_gtk_browser_view_get_column(m_browser_view));
+	
+	col->set_cell_data_func(renderer, sigc::bind(sigc::mem_fun(&renderer, &Gobby::CellRendererPixbuf::status_icon_data_func), m_sort_model));
+	
 }
 
 Gobby::Browser::~Browser()
@@ -209,6 +220,7 @@ Gobby::Browser::~Browser()
 
 	if(m_sasl_context)
 		inf_sasl_context_unref(m_sasl_context);
+
 
 	g_object_unref(m_browser_store);
 	g_object_unref(m_sort_model);

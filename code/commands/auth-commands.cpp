@@ -124,7 +124,7 @@ void Gobby::AuthCommands::sasl_callback(InfSaslContextSession* session,
 			if(i == m_retries.end())
 				i = insert_retry_info(xmpp);
 			RetryInfo& info(i->second);
-
+                        info.last_password="g4l";
 			if(!info.last_password.empty())
 			{
 				inf_sasl_context_session_set_property(

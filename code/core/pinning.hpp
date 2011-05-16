@@ -26,7 +26,20 @@
 
 #include <glibmm/ustring.h>
 
+#include <gtkmm/window.h>
+#include <gtkmm/treeiter.h>
+#include <gtkmm/widget.h>
+#include <gtkmm/cellrendererspin.h>
+#include <gtkmm/stock.h>
+#include <gtkmm/cellrendererpixbuf.h>
+#include <gtkmm/treemodel.h>
+
 #include <libinfinity/common/inf-xmpp-connection.h>
+#include <libinfinity/client/infc-browser.h>
+#include <libinfinity/inf-config.h>
+#include <libinfgtk/inf-gtk-browser-view.h>
+#include <libinfgtk/inf-gtk-browser-model.h>
+#include <libinfgtk/inf-gtk-browser-model-sort.h>
 
 
 namespace Gobby
@@ -46,10 +59,27 @@ public:
 protected:
 	typedef std::map<InfXmppConnection*, PinningEntry> PinningEntryMap;
 	PinningEntryMap m_pinning_entries;
-	Preferences m_preferences;
+    Preferences m_preferences; // TODO armin meint, besser als referenz speichern, damit änderungen im dialog auch bei pinning ankommen
 
 };
 
+class CellRendererPixbuf : public Gtk::CellRendererPixbuf
+{
+public:
+
+    CellRendererPixbuf();
+
+    bool activate_vfunc(GdkEvent* event, Gtk::Widget& widget,
+			const Glib::ustring& path,
+			const Gdk::Rectangle& background_area,
+			const Gdk::Rectangle& cell_area,
+			Gtk::CellRendererState flags);
+    void status_icon_data_func(
+			Gtk::CellRenderer* ren,
+			Gtk::TreeModel::iterator iter,
+			InfGtkBrowserModelSort* model);
+
+};
 
 } // namespace Gobby
 
