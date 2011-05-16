@@ -30,6 +30,7 @@
 #include <libinfgtk/inf-gtk-certificate-manager.h>
 #include <libinfinity/client/infc-browser.h>
 #include <libinfinity/common/inf-discovery-avahi.h>
+#include <libinfinity/common/inf-keepalive.h>
 #include <libinfinity/common/inf-xmpp-manager.h>
 #include <libinfinity/inf-config.h>
 #include <libinfgtk/inf-gtk-browser-model.h>
@@ -128,6 +129,7 @@ protected:
 	InfSaslContext* m_sasl_context;
 	std::string m_sasl_mechanisms;
 	InfXmppManager* m_xmpp_manager;
+	InfKeepalive* m_keepalive;
 #ifdef LIBINFINITY_HAVE_AVAHI
 	InfDiscoveryAvahi* m_discovery;
 #endif
