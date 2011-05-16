@@ -22,6 +22,7 @@
 #include "util/config.hpp"
 
 #include "features.hpp"
+#include "pinningentry.hpp"
 
 #include <gtksourceview/gtksourceview.h>
 #include <gtksourceview/gtksourcestyleschememanager.h>
@@ -29,6 +30,8 @@
 #include <gtkmm/toolbar.h>
 
 #include <libinfinity/common/inf-xmpp-connection.h>
+
+#include <list>
 
 namespace Gobby
 {
@@ -175,11 +178,21 @@ public:
 		Option<InfXmppConnectionSecurityPolicy> policy;
 	};
 
+	class Pinning
+	{
+	public:
+		Pinning(Config::ParentEntry& entry);
+		void serialize(Config::ParentEntry& entry) const;
+
+		std::list<Option<PinningEntry&> > pinningEntries;
+	};
+
 	User user;
 	Editor editor;
 	View view;
 	Appearance appearance;
 	Security security;
+	Pinning pinning;
 };
 
 template<typename Type>

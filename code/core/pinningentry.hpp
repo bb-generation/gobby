@@ -32,14 +32,14 @@ namespace Gobby
 class PinningEntry
 {
 public:
-	PinningEntry(InfXmppConnection* connection);
+	PinningEntry();
 
 	enum PinningProperty {
 		HOST = 0,
 		SERVICE = 1,
 		DEVICE = 2,
 		/* ALIAS, */
-		AUTHTYPE = 4,
+		AUTHTYPE = 4, /* (SASL_MECHANISM) */
 		/* USERNAME, */
 		PASSWORD = 6
 	};
@@ -51,10 +51,13 @@ public:
 	void set_property(PinningProperty name,
 			              Glib::ustring value);
 
-	Glib::ustring get_property(PinningProperty name);
+	Glib::ustring get_property(PinningProperty name) const;
+
+	~PinningEntry();
 
 protected:
 	typedef std::map<PinningProperty, Glib::ustring> PropertyMap;
+	typedef std::map<PinningProperty, Glib::ustring>::const_iterator PropertyMapIterator;
 	PropertyMap m_properties;
 	
 	InfXmppConnection* connection;
