@@ -64,7 +64,8 @@ public:
 	Browser(Gtk::Window& parent,
 	        const InfcNotePlugin* text_plugin,
 	        StatusBar& status_bar,
-	        Preferences& preferences);
+	        Preferences& preferences,
+	        Pinning& pinning);
 	~Browser();
 
 	InfGtkBrowserModelSort* get_store() { return m_sort_model; }
@@ -152,9 +153,9 @@ protected:
 	
 	InfGtkBrowserModelSort* m_sort_model;
 
-	Pinning m_pinning;
+	Pinning& m_pinning;
 
-	CellRendererPixbuf renderer;
+	CellRendererPixbuf m_renderer;
 };
 
 }

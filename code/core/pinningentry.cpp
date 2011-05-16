@@ -22,6 +22,11 @@ Gobby::PinningEntry::PinningEntry()
 {
 }
 
+Gobby::PinningEntry::PinningEntry(InfXmppConnection* connection)
+{
+	// TODO
+}
+
 Gobby::PinningEntry::~PinningEntry()
 {
 }

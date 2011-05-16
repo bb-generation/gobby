@@ -33,16 +33,18 @@ void Gobby::CellRendererPixbuf::status_icon_data_func(
 
 	this->set_visible(true);
 
-	if(row.parent()) {
-		//parent exists -> no server entry
-
-		gtk_tree_model_get(
+	gtk_tree_model_get(
 				  GTK_TREE_MODEL(model),
 				  iter.gobj(),
 				  INF_GTK_BROWSER_MODEL_COL_BROWSER, &browser,
 				  INF_GTK_BROWSER_MODEL_COL_NODE, &browser_iter,
 				  -1
 				   );
+
+
+	if(row.parent())
+	{
+		//parent exists -> no server entry
 
 		if(infc_browser_iter_is_subdirectory(browser, browser_iter))
 			((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
@@ -51,18 +53,76 @@ void Gobby::CellRendererPixbuf::status_icon_data_func(
 			((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
 				GTK_STOCK_FILE;
 
-		infc_browser_iter_free(browser_iter);
-		g_object_unref(G_OBJECT(browser));
 	}
-	else { //server entry
-		((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
+	else
+	{ //server entry
+		InfXmlConnection* con = infc_browser_get_connection(browser);
+		if(m_pinning.get_entry(INF_XMPP_CONNECTION(con)) == 0)
+		{
+			((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
 			((Gtk::StockID)IconManager::STOCK_SERVER_UNSTARRED)
 			.get_string();
+		}
+		else
+		{
+			((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
+			((Gtk::StockID)IconManager::STOCK_SERVER_STARRED)
+			.get_string();
+		}
 	}
+	infc_browser_iter_free(browser_iter);
+	g_object_unref(G_OBJECT(browser));
+
 }
 
-Gobby::CellRendererPixbuf::CellRendererPixbuf()
-	: Gtk::CellRendererPixbuf::CellRendererPixbuf()
+
+
+Gobby::Pinning::Pinning(Preferences& preferences) :
+	m_preferences(preferences)
+{
+
+}
+
+std::list<InfXmppConnection*>
+Gobby::Pinning::get_saved_connections()
+{
+	std::list<InfXmppConnection*> rlist;
+	PinningEntryMapIterator it = m_pinning_entries.begin();
+	for(;it != m_pinning_entries.end(); ++it)
+	{
+		rlist.push_back(it->first);
+	}
+
+	return rlist;
+}
+
+void
+Gobby::Pinning::save_entry(InfXmppConnection* connection)
+{
+	PinningEntry* entry = new PinningEntry(connection);
+
+	m_pinning_entries.insert(std::make_pair(connection, entry));
+}
+
+void Gobby::Pinning::remove_entry(InfXmppConnection* connection)
+{
+	m_pinning_entries.erase(connection);
+}
+
+Gobby::PinningEntry*
+Gobby::Pinning::get_entry(InfXmppConnection* connection)
+{
+	PinningEntryMapIterator it = m_pinning_entries.find(connection);
+	if(it == m_pinning_entries.end())
+		return 0;
+	else
+		return it->second;
+}
+
+
+Gobby::CellRendererPixbuf::CellRendererPixbuf(Pinning& pinning)
+	: Gtk::CellRendererPixbuf::CellRendererPixbuf(),
+	  m_pinning(pinning)
 {
 	this->property_mode() = Gtk::CELL_RENDERER_MODE_ACTIVATABLE;
 }
@@ -103,6 +163,21 @@ bool Gobby::CellRendererPixbuf::activate_vfunc(
 					   &browser, -1);
 
 		InfXmlConnection* con = infc_browser_get_connection(browser);
+		if(m_pinning.get_entry(INF_XMPP_CONNECTION(con)) == 0)
+		{
+			((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
+				((Gtk::StockID)IconManager::STOCK_SERVER_UNSTARRED)
+				.get_string();
+			m_pinning.save_entry(INF_XMPP_CONNECTION(con));
+		}
+		else
+		{
+			((Gtk::CellRendererPixbuf*)this)->property_stock_id() =
+				((Gtk::StockID)IconManager::STOCK_SERVER_STARRED)
+				.get_string();
+			m_pinning.remove_entry(INF_XMPP_CONNECTION(con));
+		}
+
 
 		g_object_unref(browser);
 

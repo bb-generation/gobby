@@ -48,9 +48,9 @@ namespace Gobby
 class Pinning
 {
 public:
-	Pinning(Preferences& preferences): m_preferences(preferences) { }
+	Pinning(Preferences& preferences);
 	
-	std::list<PinningEntry> load_saved_entries();
+	std::list<InfXmppConnection*> get_saved_connections();
 
 	void save_entry(InfXmppConnection* connection);
 
@@ -59,7 +59,8 @@ public:
 	PinningEntry* get_entry(InfXmppConnection* connection);
 
 protected:
-	typedef std::map<InfXmppConnection*, PinningEntry> PinningEntryMap;
+	typedef std::map<InfXmppConnection*, PinningEntry*> PinningEntryMap;
+	typedef std::map<InfXmppConnection*, PinningEntry*>::iterator PinningEntryMapIterator;
 	PinningEntryMap m_pinning_entries;
   Preferences& m_preferences;
 };
@@ -68,18 +69,22 @@ class CellRendererPixbuf : public Gtk::CellRendererPixbuf
 {
 public:
 
-    CellRendererPixbuf();
+	CellRendererPixbuf(Pinning& pinning);
 
-    bool activate_vfunc(GdkEvent* event, Gtk::Widget& widget,
-			const Glib::ustring& path,
-			const Gdk::Rectangle& background_area,
-			const Gdk::Rectangle& cell_area,
-			Gtk::CellRendererState flags);
-    void status_icon_data_func(
-			Gtk::CellRenderer* ren,
-			Gtk::TreeModel::iterator iter,
-			InfGtkBrowserModelSort* model);
+	bool
+	activate_vfunc(GdkEvent* event, Gtk::Widget& widget,
+	               const Glib::ustring& path,
+	               const Gdk::Rectangle& background_area,
+	               const Gdk::Rectangle& cell_area,
+	               Gtk::CellRendererState flags);
 
+	void
+	status_icon_data_func(Gtk::CellRenderer* ren,
+	                      Gtk::TreeModel::iterator iter,
+	                      InfGtkBrowserModelSort* model);
+
+private:
+	Pinning& m_pinning;
 };
 
 } // namespace Gobby

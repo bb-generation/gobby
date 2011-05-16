@@ -109,7 +109,8 @@ gint compare_func(GtkTreeModel* model, GtkTreeIter* first, GtkTreeIter* second, 
 Gobby::Browser::Browser(Gtk::Window& parent,
                         const InfcNotePlugin* text_plugin,
                         StatusBar& status_bar,
-                        Preferences& preferences):
+                        Preferences& preferences,
+                        Pinning& pinning):
 	m_parent(parent),
 	m_text_plugin(text_plugin),
 	m_status_bar(status_bar),
@@ -119,7 +120,8 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	m_hbox(false, 6),
 	m_label_hostname(_("Host Name:")),
 	m_entry_hostname(config_filename("recent_hosts"), 5),
-        m_pinning(m_preferences)
+	m_pinning(pinning),
+	m_renderer(m_pinning)
 {
 	m_label_hostname.show();
 	m_entry_hostname.get_entry()->signal_activate().connect(
@@ -201,11 +203,11 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 
 	set_focus_child(m_expander);
 
-	inf_gtk_browser_view_set_status_cell_renderer(m_browser_view, (GtkCellRenderer*)renderer.gobj());
+	inf_gtk_browser_view_set_status_cell_renderer(m_browser_view, (GtkCellRenderer*)m_renderer.gobj());
 	
 	Gtk::TreeViewColumn *col = Glib::wrap(inf_gtk_browser_view_get_column(m_browser_view));
 	
-	col->set_cell_data_func(renderer, sigc::bind(sigc::mem_fun(&renderer, &Gobby::CellRendererPixbuf::status_icon_data_func), m_sort_model));
+	col->set_cell_data_func(m_renderer, sigc::bind(sigc::mem_fun(&m_renderer, &Gobby::CellRendererPixbuf::status_icon_data_func), m_sort_model));
 	
 }
 

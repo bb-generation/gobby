@@ -33,6 +33,7 @@ class PinningEntry
 {
 public:
 	PinningEntry();
+	PinningEntry(InfXmppConnection* connection);
 
 	enum PinningProperty {
 		HOST = 0,
@@ -43,10 +44,6 @@ public:
 		/* USERNAME, */
 		PASSWORD = 6
 	};
-
-	InfXmppConnection* create_connection();
-	void set_connection(InfXmppConnection* connection);
-	InfXmppConnection* get_connection();
 
 	void set_property(PinningProperty name,
 			              Glib::ustring value);
@@ -59,8 +56,6 @@ protected:
 	typedef std::map<PinningProperty, Glib::ustring> PropertyMap;
 	typedef std::map<PinningProperty, Glib::ustring>::const_iterator PropertyMapIterator;
 	PropertyMap m_properties;
-	
-	InfXmppConnection* connection;
 };
 
 
