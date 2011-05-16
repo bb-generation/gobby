@@ -19,6 +19,9 @@
 #include "features.hpp"
 #include "core/preferences.hpp"
 
+#include <glib.h>
+#include <glib/gprintf.h>
+
 // TODO: Support direct enum config storage via context specialization for
 // enums.
 Gobby::Preferences::User::User(Config::ParentEntry& entry):
@@ -183,13 +186,54 @@ void Gobby::Preferences::Security::serialize(Config::ParentEntry& entry) const
 	entry.set_value("policy", static_cast<int>(policy));
 }
 
+Gobby::Preferences::Pinning::Pinning(Config::ParentEntry& entry)
+{
+	Config::ParentEntry::iterator it = entry.begin();
+	Config::ParentEntry::iterator it_end = entry.end();
+	for(; it != it_end; ++it)
+	{
+		Config::ParentEntry& pentry = entry[it->get_name()];
+		Gobby::PinningEntry* pinningEntry = new Gobby::PinningEntry;
+		Glib::ustring host = pentry.get_value<Glib::ustring>("host", "");
+		pinningEntry->set_property(PinningEntry::HOST, host);
+		Glib::ustring service = pentry.get_value<Glib::ustring>("service", "6523");
+		pinningEntry->set_property(PinningEntry::SERVICE, service);
+		Glib::ustring device = pentry.get_value<Glib::ustring>("device", "");
+		pinningEntry->set_property(PinningEntry::DEVICE, device);
+		Glib::ustring authtype = pentry.get_value<Glib::ustring>("auth-type", "");
+		pinningEntry->set_property(PinningEntry::AUTHTYPE, authtype);
+		Glib::ustring password = pentry.get_value<Glib::ustring>("password", "");
+		pinningEntry->set_property(PinningEntry::PASSWORD, password);
+
+		pinningEntries.push_back(*pinningEntry);
+	}
+}
+
+void Gobby::Preferences::Pinning::serialize(Config::ParentEntry& entry) const
+{
+	int i = 1;
+	for(std::list<Option<PinningEntry&> >::const_iterator it = pinningEntries.begin();
+			it != pinningEntries.end(); ++it, ++i)
+	{
+		Config::ParentEntry& pentry = entry.set_parent(Glib::ustring("entry") + g_strdup_printf("%i", i));
+		const PinningEntry &ppentry = it->get();
+		pentry.set_value("host", ppentry.get_property(PinningEntry::HOST));
+		pentry.set_value("service", ppentry.get_property(PinningEntry::SERVICE));
+		pentry.set_value("device", ppentry.get_property(PinningEntry::DEVICE));
+		pentry.set_value("auth-type", ppentry.get_property(PinningEntry::AUTHTYPE));
+		pentry.set_value("password", ppentry.get_property(PinningEntry::PASSWORD));
+	}
+}
+
 Gobby::Preferences::Preferences(Config& config):
 	user(config.get_root()["user"]),
 	editor(config.get_root()["editor"]),
 	view(config.get_root()["view"]),
 	appearance(config.get_root()["appearance"]),
-	security(config.get_root()["security"])
+	security(config.get_root()["security"]),
+	pinning(config.get_root()["pinning"])
 {
+
 }
 
 void Gobby::Preferences::serialize(Config& config) const
@@ -200,5 +244,6 @@ void Gobby::Preferences::serialize(Config& config) const
 	view.serialize(config.get_root()["view"]);
 	appearance.serialize(config.get_root()["appearance"]);
 	security.serialize(config.get_root()["security"]);
+	pinning.serialize(config.get_root()["pinning"]);
 }
 

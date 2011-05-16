@@ -17,3 +17,28 @@
  */
 
 #include "pinningentry.hpp"
+
+Gobby::PinningEntry::PinningEntry()
+{
+}
+
+Gobby::PinningEntry::~PinningEntry()
+{
+}
+
+void
+Gobby::PinningEntry::set_property(PinningProperty name, Glib::ustring value)
+{
+	m_properties[name] = value;
+}
+
+Glib::ustring
+Gobby::PinningEntry::get_property(PinningProperty name) const
+{
+	PropertyMapIterator it = m_properties.find(name);
+	if(it != m_properties.end())
+		return it->second;
+	else
+		return "";
+}
+

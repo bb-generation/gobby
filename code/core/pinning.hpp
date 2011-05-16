@@ -56,6 +56,8 @@ public:
 
 	void remove_entry(InfXmppConnection* connection);
 
+	PinningEntry* get_entry(InfXmppConnection* connection);
+
 protected:
 	typedef std::map<InfXmppConnection*, PinningEntry> PinningEntryMap;
 	PinningEntryMap m_pinning_entries;
