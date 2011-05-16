@@ -48,7 +48,7 @@ namespace Gobby
 class Pinning
 {
 public:
-	Pinning(Preferences preferences): m_preferences(preferences) { }
+	Pinning(Preferences& preferences): m_preferences(preferences) { }
 	
 	std::list<PinningEntry> load_saved_entries();
 
@@ -61,8 +61,7 @@ public:
 protected:
 	typedef std::map<InfXmppConnection*, PinningEntry> PinningEntryMap;
 	PinningEntryMap m_pinning_entries;
-    Preferences m_preferences; // TODO armin meint, besser als referenz speichern, damit änderungen im dialog auch bei pinning ankommen
-
+  Preferences& m_preferences;
 };
 
 class CellRendererPixbuf : public Gtk::CellRendererPixbuf

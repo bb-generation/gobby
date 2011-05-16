@@ -45,7 +45,7 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 #endif
 	m_header(m_preferences, m_lang_manager),
 	m_browser(*this, Plugins::TEXT, m_statusbar, m_preferences),
-        m_pinning(m_config),
+	m_pinning(m_preferences),
 	m_text_folder(false, m_preferences, m_lang_manager),
 	m_chat_folder(true, m_preferences, m_lang_manager),
 	m_chat_frame(_("Chat"), IconManager::STOCK_CHAT,
