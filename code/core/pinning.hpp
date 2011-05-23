@@ -20,7 +20,8 @@
 #define _GOBBY_PINNING_HPP_
 
 #include "preferences.hpp"
-#include "pinningentry.hpp"
+//#include "pinningentry.hpp"
+//#include "commands/auth-commands.cpp"
 
 #include <map>
 
@@ -34,6 +35,7 @@
 #include <gtkmm/cellrendererpixbuf.h>
 #include <gtkmm/treemodel.h>
 
+#include <libinfinity/common/inf-sasl-context.h>
 #include <libinfinity/common/inf-xmpp-connection.h>
 #include <libinfinity/client/infc-browser.h>
 #include <libinfinity/inf-config.h>
@@ -45,12 +47,17 @@
 namespace Gobby
 {
 
+class PinningEntry;
+class AuthCommands;
+
 class Pinning
 {
 public:
 	Pinning(Preferences& preferences);
+
+	void init(AuthCommands* auth_commands);
 	
-	std::list<InfXmppConnection*> get_saved_connections();
+	std::list<InfXmppConnection*>& get_saved_connections();
 
 	void save_entry(InfXmppConnection* connection);
 
@@ -58,11 +65,21 @@ public:
 
 	PinningEntry* get_entry(InfXmppConnection* connection);
 
+	void set_sasl_context(InfSaslContext* sasl_context);
+
+	void load_saved_connections();
+
+	void save_back();
+
 protected:
+	InfXmppConnection* create_connection(PinningEntry* entry);
+
 	typedef std::map<InfXmppConnection*, PinningEntry*> PinningEntryMap;
 	typedef std::map<InfXmppConnection*, PinningEntry*>::iterator PinningEntryMapIterator;
 	PinningEntryMap m_pinning_entries;
   Preferences& m_preferences;
+	InfSaslContext* m_sasl_context;
+	AuthCommands* m_auth_commands;
 };
 
 class CellRendererPixbuf : public Gtk::CellRendererPixbuf

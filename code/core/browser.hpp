@@ -85,7 +85,7 @@ public:
 
 	SignalActivate signal_activate() const { return m_signal_activate; }
 
-      	void load_pinning_entries();
+	void load_pinning_entries();
 protected:
 	static void on_set_browser_static(InfGtkBrowserModel* model,
 	                                  GtkTreePath* path,

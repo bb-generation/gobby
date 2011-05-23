@@ -19,6 +19,7 @@
 #ifndef _GOBBY_PINNING_ENTRY_HPP_
 #define _GOBBY_PINNING_ENTRY_HPP_
 
+//#include "commands/auth-commands.hpp"
 
 #include <map>
 
@@ -29,11 +30,13 @@
 namespace Gobby
 {
 
+
 class PinningEntry
 {
 public:
 	PinningEntry();
-	PinningEntry(InfXmppConnection* connection);
+	PinningEntry(InfXmppConnection* connection,
+	             Glib::ustring password);
 
 	enum PinningProperty {
 		HOST = 0,

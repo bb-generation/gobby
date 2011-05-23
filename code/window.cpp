@@ -87,6 +87,7 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 	m_chat_frame.signal_hide().connect(
 		sigc::mem_fun(*this, &Window::on_chat_hide), false);
 
+	m_pinning.init(&m_auth_commands);
 	m_browser.load_pinning_entries();
 	m_header.show();
 	m_browser.show();
@@ -148,13 +149,12 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 	set_default_size(800, 600);
 	set_role("Gobby");
 
-        Glib::ustring str;
-        m_browser.connect_to_host(str);
 }
 
 Gobby::Window::~Window()
 {
 	// Serialise preferences into config
+	m_pinning.save_back();
 	m_preferences.serialize(m_config);
 
 #ifdef WITH_UNIQUE

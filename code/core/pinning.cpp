@@ -17,8 +17,16 @@
  */
 
 #include "pinning.hpp"
+
+#include "pinningentry.hpp"
+#include "commands/auth-commands.hpp"
+
 #include "iconmanager.hpp"
 #include <gtkmm/treeview.h>
+
+#include <libinfgtk/inf-gtk-io.h>
+
+#include <sstream>
 
 ////////////////////// CellRendererPixBuf ////////////////////////////
 void Gobby::CellRendererPixbuf::status_icon_data_func(
@@ -83,23 +91,99 @@ Gobby::Pinning::Pinning(Preferences& preferences) :
 
 }
 
-std::list<InfXmppConnection*>
+void Gobby::Pinning::set_sasl_context(InfSaslContext* sasl_context)
+{
+	g_assert(sasl_context != NULL);
+	m_sasl_context = sasl_context;
+}
+
+
+void Gobby::Pinning::init(Gobby::AuthCommands* auth_commands)
+{
+	m_auth_commands = auth_commands;
+
+}
+
+void Gobby::Pinning::load_saved_connections()
+{
+	std::list<Preferences::Option<PinningEntry&> >::iterator it = m_preferences.pinning.pinningEntries.begin();
+	for(;it != m_preferences.pinning.pinningEntries.end(); ++it)
+	{
+		PinningEntry* pentry = &it->get();
+		g_assert(pentry != NULL);
+		InfXmppConnection* connection = create_connection(pentry);
+		m_pinning_entries.insert(std::make_pair(connection, pentry));
+		m_auth_commands->set_last_password(connection, pentry->get_property(PinningEntry::PASSWORD));
+	}
+}
+
+std::list<InfXmppConnection*>&
 Gobby::Pinning::get_saved_connections()
 {
-	std::list<InfXmppConnection*> rlist;
+	std::list<InfXmppConnection*>* rlist = new std::list<InfXmppConnection*>;
 	PinningEntryMapIterator it = m_pinning_entries.begin();
 	for(;it != m_pinning_entries.end(); ++it)
 	{
-		rlist.push_back(it->first);
+		g_assert(it->first != NULL);
+		rlist->push_back(it->first);
 	}
 
-	return rlist;
+	return *rlist;
 }
+
+InfXmppConnection*
+Gobby::Pinning::create_connection(PinningEntry* entry)
+{
+	InfXmppConnection* connection;
+	InfTcpConnection* tcp_connection;
+	Glib::ustring host = entry->get_property(PinningEntry::HOST);
+	Glib::ustring service = entry->get_property(PinningEntry::SERVICE);
+	Glib::ustring device = entry->get_property(PinningEntry::DEVICE);
+	Glib::ustring sasl_mechanism = entry->get_property(PinningEntry::AUTHTYPE);
+
+
+	gint iservice;
+
+	std::stringstream sstr;
+	sstr << service;
+	sstr >> iservice;
+
+	if(iservice == 0)
+		iservice = 6523;
+
+	tcp_connection = inf_tcp_connection_new_from_hostname(
+	    INF_IO(inf_gtk_io_new()),
+			host.c_str(),
+			iservice);
+
+		//TODO: See if this is required
+		// g_object_set(G_OBJECT(connection),
+		// 	     "device-index", device,
+		// 	     NULL);
+
+	g_assert(m_sasl_context != NULL);
+
+	connection = inf_xmpp_connection_new(
+		tcp_connection, INF_XMPP_CONNECTION_CLIENT,
+		NULL, host.c_str(),
+		//TODO: Get from Property class?
+		m_preferences.security.policy,
+		NULL,
+		m_sasl_context, //TODO: SASL_CONTEXT
+		sasl_mechanism.c_str());
+
+	g_assert(connection != NULL);
+			                                    
+	return connection;
+
+}
+
 
 void
 Gobby::Pinning::save_entry(InfXmppConnection* connection)
 {
-	PinningEntry* entry = new PinningEntry(connection);
+	Glib::ustring password = m_auth_commands->get_last_password(connection);
+	PinningEntry* entry = new PinningEntry(connection, password);
 
 	m_pinning_entries.insert(std::make_pair(connection, entry));
 }
@@ -117,6 +201,16 @@ Gobby::Pinning::get_entry(InfXmppConnection* connection)
 		return 0;
 	else
 		return it->second;
+}
+
+void Gobby::Pinning::save_back()
+{
+	m_preferences.pinning.pinningEntries.clear();
+	PinningEntryMapIterator it = m_pinning_entries.begin();
+	for(;it != m_pinning_entries.end(); ++it)
+	{
+		m_preferences.pinning.pinningEntries.push_back(*it->second);
+	}
 }
 
 

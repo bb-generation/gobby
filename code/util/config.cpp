@@ -164,6 +164,11 @@ Gobby::Config::ParentEntry& Gobby::Config::ParentEntry::
 	return *child;
 }
 
+void Gobby::Config::ParentEntry::clear()
+{
+	m_map.clear();
+}
+
 Gobby::Config::ParentEntry::iterator Gobby::Config::ParentEntry::begin()
 {
 	return iterator(m_map.begin() );

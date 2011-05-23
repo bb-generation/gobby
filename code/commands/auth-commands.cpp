@@ -97,7 +97,7 @@ Gobby::AuthCommands::~AuthCommands()
 	for(RetryMap::iterator iter = m_retries.begin();
 	    iter != m_retries.end(); ++iter)
 	{
-		g_signal_handler_disconnect(iter->first, iter->second.handle);
+		//g_signal_handler_disconnect(iter->first, iter->second.handle);
 	}
 }
 
@@ -124,7 +124,6 @@ void Gobby::AuthCommands::sasl_callback(InfSaslContextSession* session,
 			if(i == m_retries.end())
 				i = insert_retry_info(xmpp);
 			RetryInfo& info(i->second);
-                        info.last_password="g4l";
 			if(!info.last_password.empty())
 			{
 				inf_sasl_context_session_set_property(
@@ -301,11 +300,11 @@ Gobby::AuthCommands::insert_retry_info(InfXmppConnection* xmpp)
 		std::make_pair(xmpp,
 		               RetryInfo())).first;
 	iter->second.retries = 0;
-	iter->second.handle = g_signal_connect(
-		G_OBJECT(xmpp),
-		"notify::status",
-		G_CALLBACK(on_notify_status_static),
-		this);
+	// iter->second.handle = g_signal_connect(
+	// 	G_OBJECT(xmpp),
+	// 	"notify::status",
+	// 	G_CALLBACK(on_notify_status_static),
+	// 	this);
 	iter->second.password_dialog = NULL;
 
 	return iter;
@@ -321,6 +320,37 @@ void Gobby::AuthCommands::on_notify_status(InfXmppConnection* connection)
 		RetryMap::iterator iter = m_retries.find(connection);
 		g_signal_handler_disconnect(connection, iter->second.handle);
 		delete iter->second.password_dialog;
-		m_retries.erase(iter);
+		m_retries.erase(iter); // TODO: does this cause troubles?!
 	}
 }
+
+Glib::ustring
+Gobby::AuthCommands::get_last_password(InfXmppConnection* connection)
+{
+	RetryMap::iterator i = m_retries.find(connection);
+	if(i == m_retries.end())
+	{
+		insert_retry_info(connection);
+		return "";
+	}
+	else
+	{
+		RetryInfo& info(i->second);
+		return info.last_password;
+	}
+}
+
+void
+Gobby::AuthCommands::set_last_password(InfXmppConnection* connection,
+   	              Glib::ustring password)
+{
+	RetryMap::iterator i = m_retries.find(connection);
+	if(i == m_retries.end())
+	{
+		i = insert_retry_info(connection);
+	}
+
+	RetryInfo& info(i->second);
+	info.last_password = password;
+}
+

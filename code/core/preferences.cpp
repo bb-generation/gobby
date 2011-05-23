@@ -18,6 +18,7 @@
 
 #include "features.hpp"
 #include "core/preferences.hpp"
+#include "core/pinningentry.hpp"
 
 #include <glib.h>
 #include <glib/gprintf.h>
@@ -212,6 +213,7 @@ Gobby::Preferences::Pinning::Pinning(Config::ParentEntry& entry)
 void Gobby::Preferences::Pinning::serialize(Config::ParentEntry& entry) const
 {
 	int i = 1;
+	entry.clear();
 	for(std::list<Option<PinningEntry&> >::const_iterator it = pinningEntries.begin();
 			it != pinningEntries.end(); ++it, ++i)
 	{

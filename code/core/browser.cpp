@@ -21,6 +21,7 @@
 #include "util/gtk-compat.hpp"
 #include "util/file.hpp"
 #include "util/i18n.hpp"
+#include "core/pinningentry.hpp"
 
 #include <libinfinity/inf-config.h>
 
@@ -128,6 +129,7 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 		sigc::mem_fun(*this, &Browser::on_hostname_activate));
 	m_entry_hostname.show();
 
+
 	m_hbox.pack_start(m_label_hostname, Gtk::PACK_SHRINK);
 	m_hbox.pack_start(m_entry_hostname, Gtk::PACK_EXPAND_WIDGET);
 	m_hbox.show();
@@ -234,8 +236,26 @@ Gobby::Browser::~Browser()
 	g_object_unref(m_io);
 }
 
-void Gobby::Browser::load_pinning_entries(){
-  //TODO:
+void Gobby::Browser::load_pinning_entries()
+{
+	// TODO: load pinning entries
+	m_pinning.set_sasl_context(m_sasl_context);
+	m_pinning.load_saved_connections();
+
+	std::list<InfXmppConnection*> saved_connections
+	  = m_pinning.get_saved_connections();
+	for(std::list<InfXmppConnection*>::iterator it = saved_connections.begin();
+	    it != saved_connections.end();
+			++it)
+	{
+		PinningEntry* pentry = m_pinning.get_entry(*it);
+		g_assert(pentry != NULL);
+		inf_gtk_browser_store_add_connection(
+			m_browser_store,
+			INF_XML_CONNECTION(*it),
+			pentry->get_property(PinningEntry::HOST).c_str());
+	}
+
 }
 
 void Gobby::Browser::on_expanded_changed()

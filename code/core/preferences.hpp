@@ -22,7 +22,9 @@
 #include "util/config.hpp"
 
 #include "features.hpp"
-#include "pinningentry.hpp"
+//#include "pinningentry.hpp"
+
+
 
 #include <gtksourceview/gtksourceview.h>
 #include <gtksourceview/gtksourcestyleschememanager.h>
@@ -35,6 +37,9 @@
 
 namespace Gobby
 {
+
+// forward declaration of PinningEntry to avoid circular dependency
+class PinningEntry; 
 
 class Preferences
 {

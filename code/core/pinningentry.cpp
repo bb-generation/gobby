@@ -18,13 +18,37 @@
 
 #include "pinningentry.hpp"
 
+#include "commands/auth-commands.hpp"
+
 Gobby::PinningEntry::PinningEntry()
 {
 }
 
-Gobby::PinningEntry::PinningEntry(InfXmppConnection* connection)
+Gobby::PinningEntry::PinningEntry(InfXmppConnection* connection,
+                                  Glib::ustring password)
 {
-	// TODO
+	const gchar* host;
+	g_object_get(G_OBJECT(connection),
+	             "remote_hostname", &host, NULL);
+	set_property(HOST, host);
+
+	InfTcpConnection* tcp_connection;
+	g_object_get(G_OBJECT(connection),
+	             "tcp-connection", &tcp_connection, NULL);
+	guint port = inf_tcp_connection_get_remote_port(tcp_connection);
+	set_property(SERVICE, g_strdup_printf("%i", port));
+	g_object_unref(tcp_connection);
+
+	const gchar* sasl_mechanism;
+	g_object_get(G_OBJECT(connection),
+	             "sasl-mechanisms", &sasl_mechanism, NULL);
+
+	Glib::ustring mechanism = Glib::ustring(sasl_mechanism);
+	set_property(AUTHTYPE, mechanism);
+	
+	set_property(PASSWORD, password);
+
+
 }
 
 Gobby::PinningEntry::~PinningEntry()

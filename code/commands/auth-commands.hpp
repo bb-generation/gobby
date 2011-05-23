@@ -23,7 +23,7 @@
 
 #include "core/browser.hpp"
 #include "core/statusbar.hpp"
-#include "core/preferences.hpp"
+//#include "core/preferences.hpp"
 
 #include <gtkmm/window.h>
 #include <sigc++/trackable.h>
@@ -40,6 +40,19 @@ public:
 	             const Preferences& preferences);
 
 	~AuthCommands();
+
+	Glib::ustring get_last_password(InfXmppConnection* connection);
+
+	void set_last_password(InfXmppConnection* connection,
+	                       Glib::ustring password);
+
+	struct RetryInfo {
+		unsigned int retries;
+		Glib::ustring last_password;
+		gulong handle;
+		PasswordDialog* password_dialog;
+	};
+
 
 protected:
 	static void sasl_callback_static(InfSaslContextSession* session,
@@ -94,12 +107,6 @@ protected:
 	                         Glib::ustring& old_password,
 	                         Glib::ustring& last_password);
 
-	struct RetryInfo {
-		unsigned int retries;
-		Glib::ustring last_password;
-		gulong handle;
-		PasswordDialog* password_dialog;
-	};
 
 	typedef std::map<InfXmppConnection*, RetryInfo> RetryMap;
 
