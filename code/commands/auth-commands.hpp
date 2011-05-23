@@ -41,10 +41,10 @@ public:
 
 	~AuthCommands();
 
-	Glib::ustring get_last_password(InfXmppConnection* connection);
+	Glib::ustring get_saved_password(InfXmppConnection* connection);
 
-	void set_last_password(InfXmppConnection* connection,
-	                       Glib::ustring password);
+	void set_saved_password(InfXmppConnection* connection,
+	                        Glib::ustring password);
 
 	struct RetryInfo {
 		unsigned int retries;

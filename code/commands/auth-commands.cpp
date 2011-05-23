@@ -325,7 +325,7 @@ void Gobby::AuthCommands::on_notify_status(InfXmppConnection* connection)
 }
 
 Glib::ustring
-Gobby::AuthCommands::get_last_password(InfXmppConnection* connection)
+Gobby::AuthCommands::get_saved_password(InfXmppConnection* connection)
 {
 	RetryMap::iterator i = m_retries.find(connection);
 	if(i == m_retries.end())
@@ -341,8 +341,8 @@ Gobby::AuthCommands::get_last_password(InfXmppConnection* connection)
 }
 
 void
-Gobby::AuthCommands::set_last_password(InfXmppConnection* connection,
-   	              Glib::ustring password)
+Gobby::AuthCommands::set_saved_password(InfXmppConnection* connection,
+                                        Glib::ustring password)
 {
 	RetryMap::iterator i = m_retries.find(connection);
 	if(i == m_retries.end())

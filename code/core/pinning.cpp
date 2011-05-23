@@ -113,7 +113,7 @@ void Gobby::Pinning::load_saved_connections()
 		g_assert(pentry != NULL);
 		InfXmppConnection* connection = create_connection(pentry);
 		m_pinning_entries.insert(std::make_pair(connection, pentry));
-		m_auth_commands->set_last_password(connection, pentry->get_property(PinningEntry::PASSWORD));
+		m_auth_commands->set_saved_password(connection, pentry->get_property(PinningEntry::PASSWORD));
 	}
 }
 
@@ -182,7 +182,7 @@ Gobby::Pinning::create_connection(PinningEntry* entry)
 void
 Gobby::Pinning::save_entry(InfXmppConnection* connection)
 {
-	Glib::ustring password = m_auth_commands->get_last_password(connection);
+	Glib::ustring password = m_auth_commands->get_saved_password(connection);
 	PinningEntry* entry = new PinningEntry(connection, password);
 
 	m_pinning_entries.insert(std::make_pair(connection, entry));
