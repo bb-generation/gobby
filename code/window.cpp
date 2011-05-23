@@ -154,7 +154,6 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 Gobby::Window::~Window()
 {
 	// Serialise preferences into config
-	m_pinning.save_back();
 	m_preferences.serialize(m_config);
 
 #ifdef WITH_UNIQUE

@@ -55,7 +55,11 @@ public:
 
 	~PinningEntry();
 
+	bool operator==(const PinningEntry& other) const;
+
 protected:
+
+
 	typedef std::map<PinningProperty, Glib::ustring> PropertyMap;
 	typedef std::map<PinningProperty, Glib::ustring>::const_iterator PropertyMapIterator;
 	PropertyMap m_properties;

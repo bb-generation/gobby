@@ -22,7 +22,7 @@
 #include "util/config.hpp"
 
 #include "features.hpp"
-//#include "pinningentry.hpp"
+#include "pinningentry.hpp"
 
 
 
@@ -94,6 +94,86 @@ public:
 		Type m_value;
 		signal_changed_type m_signal_changed;
 	};
+
+	template<typename Type>
+	class OptionList
+	{
+	public:
+		typedef sigc::signal<void, Type> signal_added_type;
+		typedef sigc::signal<void, Type> signal_removed_type;
+
+		typedef typename std::list<Type>::iterator iterator;
+		typedef typename std::list<Type>::const_iterator const_iterator;
+
+		OptionList() { }
+
+		void add(const Type& new_value)
+		{
+			m_signal_added.emit(new_value);
+			m_value.push_back(new_value);
+		}
+
+		void remove(const Type& remove_value)
+		{
+			m_signal_removed.emit(remove_value);
+			m_value.remove(remove_value);
+		}
+
+		iterator find(const Type& find_value)
+		{
+			return iterator(m_value.find(find_value));
+		}
+
+		const_iterator find(const Type& find_value) const
+		{
+			return const_iterator(m_value.find(find_value));
+		}
+
+		void clear()
+		{
+			for(iterator it = begin();it != end(); ++it)
+			{
+				remove(*it);
+			}
+		}
+
+		iterator begin()
+		{
+			return iterator(m_value.begin());
+		}
+
+		const_iterator begin() const
+		{
+			return const_iterator(m_value.begin());
+		}
+
+		iterator end()
+		{
+			return iterator(m_value.end());
+		}
+
+		const_iterator end() const
+		{
+			return const_iterator(m_value.end());
+		}
+
+		signal_added_type signal_added() const
+		{
+			return m_signal_added;
+		}
+
+		signal_removed_type signal_removed() const
+		{
+			return m_signal_removed;
+		}
+
+
+	protected:
+		std::list<Type> m_value;
+		signal_added_type m_signal_added;
+		signal_removed_type m_signal_removed;
+	};
+
 
 	/** Reads preferences values out of a config, using default values
 	 * for values that do not exist in the config.
@@ -189,7 +269,8 @@ public:
 		Pinning(const Config::ParentEntry& entry);
 		void serialize(Config::ParentEntry& entry) const;
 
-		std::list<Option<PinningEntry&> > pinningEntries;
+		//std::list<Option<PinningEntry&> > pinningEntries;
+		OptionList<PinningEntry> pinningEntries;
 	};
 
 	User user;

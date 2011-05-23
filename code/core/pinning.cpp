@@ -106,10 +106,10 @@ void Gobby::Pinning::init(Gobby::AuthCommands* auth_commands)
 
 void Gobby::Pinning::load_saved_connections()
 {
-	std::list<Preferences::Option<PinningEntry&> >::iterator it = m_preferences.pinning.pinningEntries.begin();
+	Preferences::OptionList<PinningEntry>::iterator it = m_preferences.pinning.pinningEntries.begin();
 	for(;it != m_preferences.pinning.pinningEntries.end(); ++it)
 	{
-		PinningEntry* pentry = &it->get();
+		PinningEntry* pentry = &*it;
 		g_assert(pentry != NULL);
 		InfXmppConnection* connection = create_connection(pentry);
 		m_pinning_entries.insert(std::make_pair(connection, pentry));
@@ -186,11 +186,14 @@ Gobby::Pinning::save_entry(InfXmppConnection* connection)
 	PinningEntry* entry = new PinningEntry(connection, password);
 
 	m_pinning_entries.insert(std::make_pair(connection, entry));
+	m_preferences.pinning.pinningEntries.add(*entry);
 }
 
 void Gobby::Pinning::remove_entry(InfXmppConnection* connection)
 {
-	m_pinning_entries.erase(connection);
+	PinningEntryMapIterator it = m_pinning_entries.find(connection);
+	m_preferences.pinning.pinningEntries.remove(*(it->second));
+	m_pinning_entries.erase(it);
 }
 
 Gobby::PinningEntry*
@@ -201,16 +204,6 @@ Gobby::Pinning::get_entry(InfXmppConnection* connection)
 		return 0;
 	else
 		return it->second;
-}
-
-void Gobby::Pinning::save_back()
-{
-	m_preferences.pinning.pinningEntries.clear();
-	PinningEntryMapIterator it = m_pinning_entries.begin();
-	for(;it != m_pinning_entries.end(); ++it)
-	{
-		m_preferences.pinning.pinningEntries.push_back(*it->second);
-	}
 }
 
 

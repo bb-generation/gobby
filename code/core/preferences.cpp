@@ -194,19 +194,19 @@ Gobby::Preferences::Pinning::Pinning(const Config::ParentEntry& entry)
 	for(; it != it_end; ++it)
 	{
 		const Config::ParentEntry* pentry = entry.get_parent_child(it->get_name());
-		Gobby::PinningEntry* pinningEntry = new Gobby::PinningEntry;
+		Gobby::PinningEntry pinningEntry;
 		Glib::ustring host = pentry->get_value<Glib::ustring>("host", "");
-		pinningEntry->set_property(PinningEntry::HOST, host);
+		pinningEntry.set_property(PinningEntry::HOST, host);
 		Glib::ustring service = pentry->get_value<Glib::ustring>("service", "6523");
-		pinningEntry->set_property(PinningEntry::SERVICE, service);
+		pinningEntry.set_property(PinningEntry::SERVICE, service);
 		Glib::ustring device = pentry->get_value<Glib::ustring>("device", "");
-		pinningEntry->set_property(PinningEntry::DEVICE, device);
+		pinningEntry.set_property(PinningEntry::DEVICE, device);
 		Glib::ustring authtype = pentry->get_value<Glib::ustring>("auth-type", "");
-		pinningEntry->set_property(PinningEntry::AUTHTYPE, authtype);
+		pinningEntry.set_property(PinningEntry::AUTHTYPE, authtype);
 		Glib::ustring password = pentry->get_value<Glib::ustring>("password", "");
-		pinningEntry->set_property(PinningEntry::PASSWORD, password);
+		pinningEntry.set_property(PinningEntry::PASSWORD, password);
 
-		pinningEntries.push_back(*pinningEntry);
+		pinningEntries.add(pinningEntry);
 	}
 }
 
@@ -214,7 +214,7 @@ void Gobby::Preferences::Pinning::serialize(Config::ParentEntry& entry) const
 {
 	int i = 1;
 	entry.clear(); // clear all set entries. otherwise deleting would have no effect
-	for(std::list<Option<PinningEntry&> >::const_iterator it = pinningEntries.begin();
+	for(OptionList<PinningEntry>::const_iterator it = pinningEntries.begin();
 			it != pinningEntries.end(); ++it, ++i)
 	{
 		// <entry1/> <entry2/> ...
@@ -222,7 +222,7 @@ void Gobby::Preferences::Pinning::serialize(Config::ParentEntry& entry) const
 		Config::ParentEntry& pentry = entry.set_parent(Glib::ustring("entry")
 			+ g_strdup_printf("%i", i));
 
-		const PinningEntry &ppentry = it->get();
+		const PinningEntry &ppentry = *it;
 		pentry.set_value("host", ppentry.get_property(PinningEntry::HOST));
 		pentry.set_value("service", ppentry.get_property(PinningEntry::SERVICE));
 		pentry.set_value("device", ppentry.get_property(PinningEntry::DEVICE));

@@ -69,8 +69,6 @@ public:
 
 	void load_saved_connections();
 
-	void save_back();
-
 protected:
 	InfXmppConnection* create_connection(PinningEntry* entry);
 
