@@ -187,23 +187,23 @@ void Gobby::Preferences::Security::serialize(Config::ParentEntry& entry) const
 	entry.set_value("policy", static_cast<int>(policy));
 }
 
-Gobby::Preferences::Pinning::Pinning(Config::ParentEntry& entry)
+Gobby::Preferences::Pinning::Pinning(const Config::ParentEntry& entry)
 {
-	Config::ParentEntry::iterator it = entry.begin();
-	Config::ParentEntry::iterator it_end = entry.end();
+	Config::ParentEntry::const_iterator it = entry.begin();
+	Config::ParentEntry::const_iterator it_end = entry.end();
 	for(; it != it_end; ++it)
 	{
-		Config::ParentEntry& pentry = entry[it->get_name()];
+		const Config::ParentEntry* pentry = entry.get_parent_child(it->get_name());
 		Gobby::PinningEntry* pinningEntry = new Gobby::PinningEntry;
-		Glib::ustring host = pentry.get_value<Glib::ustring>("host", "");
+		Glib::ustring host = pentry->get_value<Glib::ustring>("host", "");
 		pinningEntry->set_property(PinningEntry::HOST, host);
-		Glib::ustring service = pentry.get_value<Glib::ustring>("service", "6523");
+		Glib::ustring service = pentry->get_value<Glib::ustring>("service", "6523");
 		pinningEntry->set_property(PinningEntry::SERVICE, service);
-		Glib::ustring device = pentry.get_value<Glib::ustring>("device", "");
+		Glib::ustring device = pentry->get_value<Glib::ustring>("device", "");
 		pinningEntry->set_property(PinningEntry::DEVICE, device);
-		Glib::ustring authtype = pentry.get_value<Glib::ustring>("auth-type", "");
+		Glib::ustring authtype = pentry->get_value<Glib::ustring>("auth-type", "");
 		pinningEntry->set_property(PinningEntry::AUTHTYPE, authtype);
-		Glib::ustring password = pentry.get_value<Glib::ustring>("password", "");
+		Glib::ustring password = pentry->get_value<Glib::ustring>("password", "");
 		pinningEntry->set_property(PinningEntry::PASSWORD, password);
 
 		pinningEntries.push_back(*pinningEntry);

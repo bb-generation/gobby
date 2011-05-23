@@ -186,7 +186,7 @@ public:
 	class Pinning
 	{
 	public:
-		Pinning(Config::ParentEntry& entry);
+		Pinning(const Config::ParentEntry& entry);
 		void serialize(Config::ParentEntry& entry) const;
 
 		std::list<Option<PinningEntry&> > pinningEntries;
