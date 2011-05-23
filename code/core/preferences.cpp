@@ -213,11 +213,15 @@ Gobby::Preferences::Pinning::Pinning(Config::ParentEntry& entry)
 void Gobby::Preferences::Pinning::serialize(Config::ParentEntry& entry) const
 {
 	int i = 1;
-	entry.clear();
+	entry.clear(); // clear all set entries. otherwise deleting would have no effect
 	for(std::list<Option<PinningEntry&> >::const_iterator it = pinningEntries.begin();
 			it != pinningEntries.end(); ++it, ++i)
 	{
-		Config::ParentEntry& pentry = entry.set_parent(Glib::ustring("entry") + g_strdup_printf("%i", i));
+		// <entry1/> <entry2/> ...
+		// if only <entry/> was used, every for-cycle would overwrite the old one
+		Config::ParentEntry& pentry = entry.set_parent(Glib::ustring("entry")
+			+ g_strdup_printf("%i", i));
+
 		const PinningEntry &ppentry = it->get();
 		pentry.set_value("host", ppentry.get_property(PinningEntry::HOST));
 		pentry.set_value("service", ppentry.get_property(PinningEntry::SERVICE));

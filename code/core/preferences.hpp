@@ -39,7 +39,7 @@ namespace Gobby
 {
 
 // forward declaration of PinningEntry to avoid circular dependency
-class PinningEntry; 
+class PinningEntry;
 
 class Preferences
 {
