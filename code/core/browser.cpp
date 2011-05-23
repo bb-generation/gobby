@@ -134,6 +134,16 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	InfCommunicationManager* communication_manager =
 		inf_communication_manager_new();
 
+	m_keepalive = inf_keepalive_new();
+	m_keepalive->use_keepalive =
+		preferences.connection.use_keepalive.get();
+	m_keepalive->keepalive_time =
+		preferences.connection.tcp_keepalive_time.get();
+	m_keepalive->keepalive_interval =
+		preferences.connection.tcp_keepalive_intvl.get();
+	m_keepalive->keepalive_probes =
+		preferences.connection.tcp_keepalive_probes.get();
+
 	m_browser_store = inf_gtk_browser_store_new(INF_IO(m_io),
 	                                            communication_manager);
 	g_object_unref(communication_manager);
@@ -144,7 +154,7 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	m_xmpp_manager = inf_xmpp_manager_new();
 #ifdef LIBINFINITY_HAVE_AVAHI
 	m_discovery = inf_discovery_avahi_new(INF_IO(m_io), m_xmpp_manager,
-	                                      NULL, NULL, NULL);
+	                                      NULL, NULL, NULL, m_keepalive);
 	inf_discovery_avahi_set_security_policy(
 		m_discovery, m_preferences.security.policy);
 	inf_gtk_browser_store_add_discovery(m_browser_store,
@@ -208,6 +218,8 @@ Gobby::Browser::~Browser()
 
 	if(m_sasl_context)
 		inf_sasl_context_unref(m_sasl_context);
+
+	inf_keepalive_free(m_keepalive);
 
 	g_object_unref(m_browser_store);
 	g_object_unref(m_sort_model);
@@ -295,15 +307,7 @@ void Gobby::Browser::on_resolv_done(ResolvHandle* handle,
 
 		g_object_set(G_OBJECT(connection),
 			"device-index", device_index,
-			"keepalive",
-			m_preferences.connection.use_keepalive.get(),
-			"keepalive-time",
-			m_preferences.connection.tcp_keepalive_time.get(),
-			"keepalive-interval",
-			m_preferences.connection.tcp_keepalive_intvl.get(),
-			"keepalive-probes",
-			m_preferences.connection.tcp_keepalive_probes.get(),
-			NULL);
+			"keepalive", m_keepalive, NULL);
 
 		GError* error = NULL;
 		if(!inf_tcp_connection_open(connection, &error))
