@@ -20,6 +20,8 @@
 #include "core/preferences.hpp"
 #include "core/pinningentry.hpp"
 
+#include <libinfinity/common/inf-protocol.h>
+
 #include <glib.h>
 #include <glib/gprintf.h>
 
@@ -197,7 +199,8 @@ Gobby::Preferences::Pinning::Pinning(const Config::ParentEntry& entry)
 		Gobby::PinningEntry pinningEntry;
 		Glib::ustring host = pentry->get_value<Glib::ustring>("host", "");
 		pinningEntry.set_property(PinningEntry::HOST, host);
-		Glib::ustring service = pentry->get_value<Glib::ustring>("service", "6523");
+		Glib::ustring service = pentry->get_value<Glib::ustring>("service",
+			Glib::ustring::compose("%1", inf_protocol_get_default_port()));
 		pinningEntry.set_property(PinningEntry::SERVICE, service);
 		Glib::ustring device = pentry->get_value<Glib::ustring>("device", "");
 		pinningEntry.set_property(PinningEntry::DEVICE, device);
