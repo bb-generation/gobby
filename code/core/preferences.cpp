@@ -222,8 +222,8 @@ void Gobby::Preferences::Pinning::serialize(Config::ParentEntry& entry) const
 	{
 		// <entry1/> <entry2/> ...
 		// if only <entry/> was used, every for-cycle would overwrite the old one
-		Config::ParentEntry& pentry = entry.set_parent(Glib::ustring("entry")
-			+ g_strdup_printf("%i", i));
+		Config::ParentEntry& pentry = entry.set_parent(
+			Glib::ustring::compose("entry%1", i));
 
 		const PinningEntry &ppentry = *it;
 		pentry.set_value("host", ppentry.get_property(PinningEntry::HOST));
