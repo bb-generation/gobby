@@ -97,7 +97,7 @@ Gobby::AuthCommands::~AuthCommands()
 	for(RetryMap::iterator iter = m_retries.begin();
 	    iter != m_retries.end(); ++iter)
 	{
-		//g_signal_handler_disconnect(iter->first, iter->second.handle);
+		g_signal_handler_disconnect(iter->first, iter->second.handle);
 	}
 }
 
@@ -121,6 +121,7 @@ void Gobby::AuthCommands::sasl_callback(InfSaslContextSession* session,
 	case GSASL_PASSWORD:
 		{
 			RetryMap::iterator i = m_retries.find(xmpp);
+			SavedPasswordMap::iterator savedPassword = m_savedPasswords.find(xmpp);
 			if(i == m_retries.end())
 				i = insert_retry_info(xmpp);
 			RetryInfo& info(i->second);
@@ -132,6 +133,14 @@ void Gobby::AuthCommands::sasl_callback(InfSaslContextSession* session,
 
 				inf_sasl_context_session_continue(session,
 				                                  GSASL_OK);
+			}
+			else if(savedPassword != m_savedPasswords.end() && !savedPassword->second.empty())
+			{
+				inf_sasl_context_session_set_property(
+						session, GSASL_PASSWORD,
+						savedPassword->second.c_str());
+
+				inf_sasl_context_session_continue(session,GSASL_OK);
 			}
 			else
 			{
@@ -181,7 +190,10 @@ void Gobby::AuthCommands::on_response(int response_id,
 	RetryInfo& info(i->second);
 
 	if(response_id == Gtk::RESPONSE_ACCEPT)
+	{
 		info.last_password = info.password_dialog->get_password();
+		set_saved_password(xmpp,info.password_dialog->get_password());
+	}
 	else
 		info.last_password = "";
 
@@ -300,11 +312,11 @@ Gobby::AuthCommands::insert_retry_info(InfXmppConnection* xmpp)
 		std::make_pair(xmpp,
 		               RetryInfo())).first;
 	iter->second.retries = 0;
-	// iter->second.handle = g_signal_connect(
-	// 	G_OBJECT(xmpp),
-	// 	"notify::status",
-	// 	G_CALLBACK(on_notify_status_static),
-	// 	this);
+	iter->second.handle = g_signal_connect(
+		G_OBJECT(xmpp),
+		"notify::status",
+		G_CALLBACK(on_notify_status_static),
+		this);
 	iter->second.password_dialog = NULL;
 
 	return iter;
@@ -327,16 +339,14 @@ void Gobby::AuthCommands::on_notify_status(InfXmppConnection* connection)
 Glib::ustring
 Gobby::AuthCommands::get_saved_password(InfXmppConnection* connection)
 {
-	RetryMap::iterator i = m_retries.find(connection);
-	if(i == m_retries.end())
+	SavedPasswordMap::iterator i = m_savedPasswords.find(connection);
+	if(i == m_savedPasswords.end())
 	{
-		insert_retry_info(connection);
 		return "";
 	}
 	else
 	{
-		RetryInfo& info(i->second);
-		return info.last_password;
+		return i->second;
 	}
 }
 
@@ -344,13 +354,7 @@ void
 Gobby::AuthCommands::set_saved_password(InfXmppConnection* connection,
                                         Glib::ustring password)
 {
-	RetryMap::iterator i = m_retries.find(connection);
-	if(i == m_retries.end())
-	{
-		i = insert_retry_info(connection);
-	}
-
-	RetryInfo& info(i->second);
-	info.last_password = password;
+	m_savedPasswords.insert(std::make_pair<InfXmppConnection*,
+			Glib::ustring>(connection, password));
 }
 

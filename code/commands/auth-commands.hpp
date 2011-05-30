@@ -46,6 +46,9 @@ public:
 	void set_saved_password(InfXmppConnection* connection,
 	                        Glib::ustring password);
 
+protected:
+
+
 	struct RetryInfo {
 		unsigned int retries;
 		Glib::ustring last_password;
@@ -53,8 +56,6 @@ public:
 		PasswordDialog* password_dialog;
 	};
 
-
-protected:
 	static void sasl_callback_static(InfSaslContextSession* session,
 	                                 Gsasl_property prop,
 					 gpointer session_data,
@@ -109,6 +110,7 @@ protected:
 
 
 	typedef std::map<InfXmppConnection*, RetryInfo> RetryMap;
+	typedef std::map<InfXmppConnection*, Glib::ustring> SavedPasswordMap;
 
 	RetryMap::iterator insert_retry_info(InfXmppConnection* xmpp);
 
@@ -123,6 +125,7 @@ protected:
 	InfSaslContext* m_sasl_context;
 
 	RetryMap m_retries;
+	SavedPasswordMap m_savedPasswords;
 };
 
 }
