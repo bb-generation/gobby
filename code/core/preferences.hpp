@@ -99,43 +99,57 @@ public:
 	class OptionList
 	{
 	public:
-		typedef sigc::signal<void, Type> signal_added_type;
-		typedef sigc::signal<void, Type> signal_removed_type;
-
 		typedef typename std::list<Type>::iterator iterator;
 		typedef typename std::list<Type>::const_iterator const_iterator;
+
+		typedef sigc::signal<void, iterator> signal_added_type;
+		typedef sigc::signal<void, iterator> signal_removed_type;
 
 		OptionList() { }
 
 		void add(const Type& new_value)
 		{
-			m_signal_added.emit(new_value);
 			m_value.push_back(new_value);
+			m_signal_added.emit(--m_value.end());
 		}
 
-		void remove(const Type& remove_value)
+		void remove(iterator it)
 		{
-			m_signal_removed.emit(remove_value);
-			m_value.remove(remove_value);
+			m_signal_removed.emit(it);
+			m_value.erase(it);
 		}
 
 		iterator find(const Type& find_value)
 		{
-			return iterator(m_value.find(find_value));
+			for(iterator it = m_value.begin();
+					it != m_value.end();
+					++it)
+			{
+				if((*it) == find_value)
+					return it;
+			}
+			return m_value.end();
 		}
 
 		const_iterator find(const Type& find_value) const
 		{
-			return const_iterator(m_value.find(find_value));
+			for(const_iterator it = m_value.begin();
+					it != m_value.end();
+					++it)
+			{
+				if((*it) == find_value)
+					return it;
+			}
+			return m_value.end();
 		}
 
-		void clear()
-		{
-			for(iterator it = begin();it != end(); ++it)
-			{
-				remove(*it);
-			}
-		}
+		//void clear()
+		//{
+		//	for(iterator it = begin();it != end(); ++it)
+		//	{
+		//		remove(*it);
+		//	}
+		//}
 
 		iterator begin()
 		{

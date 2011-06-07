@@ -250,6 +250,7 @@ void Gobby::Browser::load_pinning_entries()
 	{
 		PinningEntry* pentry = m_pinning.get_entry(*it);
 		g_assert(pentry != NULL);
+		inf_xmpp_manager_add_connection(m_xmpp_manager,INF_XMPP_CONNECTION(*it));
 		inf_gtk_browser_store_add_connection(
 			m_browser_store,
 			INF_XML_CONNECTION(*it),
