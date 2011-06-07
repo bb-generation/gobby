@@ -192,7 +192,10 @@ Gobby::Pinning::save_entry(InfXmppConnection* connection)
 void Gobby::Pinning::remove_entry(InfXmppConnection* connection)
 {
 	PinningEntryMapIterator it = m_pinning_entries.find(connection);
-	m_preferences.pinning.pinningEntries.remove(*(it->second));
+	Preferences::OptionList<PinningEntry>::iterator pit = m_preferences.pinning.pinningEntries.find(*(it->second));
+	if(pit != m_preferences.pinning.pinningEntries.end())
+		m_preferences.pinning.pinningEntries.remove(pit);
+	//m_preferences.pinning.pinningEntries.remove(*(it->second));
 	m_pinning_entries.erase(it);
 }
 

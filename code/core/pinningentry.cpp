@@ -74,5 +74,16 @@ Gobby::PinningEntry::get_property(PinningProperty name) const
 bool
 Gobby::PinningEntry::operator==(const PinningEntry& other) const
 {
-	return this == &other;
+	if(other.m_properties.size() != m_properties.size())
+		return false;
+
+	for(PropertyMap::const_iterator it = m_properties.begin();
+			it != m_properties.end();
+			++it)
+	{
+		if(other.get_property(it->first) != it->second)
+			return false;
+	}
+	
+	return true;
 }
