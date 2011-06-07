@@ -222,6 +222,8 @@ bool Gobby::CellRendererPixbuf::activate_vfunc(
 		    const Gdk::Rectangle& cell_area,
 		    Gtk::CellRendererState flags)
 {
+	if(event != NULL)
+	{
 	Gtk::TreePath gpath(path);
 	int x, y, width, height;
 	int click_x = ((GdkEventButton*)event)->x;
@@ -269,6 +271,6 @@ bool Gobby::CellRendererPixbuf::activate_vfunc(
 		g_object_unref(browser);
 
 	}
-
+	}
 	return false;
 }
