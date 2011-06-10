@@ -21,7 +21,6 @@
 
 #include "core/statusbar.hpp"
 #include "core/preferences.hpp"
-#include "util/resolv.hpp"
 #include "util/historyentry.hpp"
 
 #include <libinfgtk/inf-gtk-io.h>
@@ -50,13 +49,6 @@ namespace Gobby
 class Browser: public Gtk::VBox
 {
 public:
-	struct Resolv
-	{
-		StatusBar::MessageHandle message_handle;
-	};
-
-	typedef std::map<ResolvHandle*, Resolv> ResolvMap;
-
 	typedef sigc::signal<void, InfcBrowser*, InfcBrowserIter*>
 		SignalActivate;
 
@@ -110,12 +102,9 @@ protected:
 	void on_activate(GtkTreeIter* iter);
 	void on_hostname_activate();
 
-	void on_resolv_done(ResolvHandle* handle, InfIpAddress* address,
-	                    guint port, const Glib::ustring& hostname,
-	                    unsigned int device_index);
-	void on_resolv_error(ResolvHandle* handle,
-	                     const std::runtime_error& error,
-	                     const Glib::ustring& hostname);
+	void open_connection(InfTcpConnection* connection,
+	                     InfXmppConnection* xmpp,
+	                     const Glib::ustring* host);
 
 	void on_security_policy_changed();
 	void on_trust_file_changed();
@@ -142,12 +131,10 @@ protected:
 	Gtk::Label m_label_hostname;
 	HistoryComboBoxEntry m_entry_hostname;
 
-	ResolvMap m_resolv_map;
 	SignalActivate m_signal_activate;
-	
+
 	InfGtkBrowserModelSort* m_sort_model;
 };
 
 }
-	
 #endif // _GOBBY_BROWSER_HPP_

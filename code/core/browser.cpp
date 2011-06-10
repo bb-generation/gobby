@@ -129,7 +129,7 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	m_expander.show();
 	m_expander.property_expanded().signal_changed().connect(
 		sigc::mem_fun(*this, &Browser::on_expanded_changed));
-	
+
 	m_io = inf_gtk_io_new();
 	InfCommunicationManager* communication_manager =
 		inf_communication_manager_new();
@@ -137,7 +137,7 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	m_browser_store = inf_gtk_browser_store_new(INF_IO(m_io),
 	                                            communication_manager);
 	g_object_unref(communication_manager);
-	
+
 	m_sort_model = inf_gtk_browser_model_sort_new(INF_GTK_BROWSER_MODEL(m_browser_store));
 	gtk_tree_sortable_set_default_sort_func(GTK_TREE_SORTABLE(m_sort_model), compare_func, NULL, NULL);
 
@@ -199,13 +199,6 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 
 Gobby::Browser::~Browser()
 {
-	for(ResolvMap::iterator iter = m_resolv_map.begin();
-	    iter != m_resolv_map.end();
-	    ++ iter)
-	{
-		cancel(iter->first);
-	}
-
 	if(m_sasl_context)
 		inf_sasl_context_unref(m_sasl_context);
 
@@ -270,96 +263,6 @@ void Gobby::Browser::on_hostname_activate()
 	m_entry_hostname.get_entry()->set_text("");
 }
 
-void Gobby::Browser::on_resolv_done(ResolvHandle* handle,
-                                    InfIpAddress* address, guint port,
-                                    const Glib::ustring& hostname,
-                                    unsigned int device_index)
-{
-	ResolvMap::iterator iter = m_resolv_map.find(handle);
-	g_assert(iter != m_resolv_map.end());
-
-	m_status_bar.remove_message(iter->second.message_handle);
-	m_resolv_map.erase(iter);
-
-	InfXmppConnection* xmpp =
-		inf_xmpp_manager_lookup_connection_by_address(m_xmpp_manager,
-		                                              address,
-		                                              port);
-
-	if(!xmpp)
-	{
-		InfTcpConnection* connection = inf_tcp_connection_new(
-			INF_IO(m_io),
-			address,
-			port);
-
-		g_object_set(G_OBJECT(connection),
-			"device-index", device_index,
-			NULL);
-
-		GError* error = NULL;
-		if(!inf_tcp_connection_open(connection, &error))
-		{
-			m_status_bar.add_error_message(
-				Glib::ustring::compose(
-					_("Connection to \"%1\" failed"),
-					hostname), error->message);
-			g_error_free(error);
-		}
-		else
-		{
-			xmpp = inf_xmpp_connection_new(
-				connection, INF_XMPP_CONNECTION_CLIENT,
-				NULL, hostname.c_str(),
-				m_preferences.security.policy,
-				NULL,
-				m_sasl_context,
-				m_sasl_mechanisms.empty()
-					? ""
-					: m_sasl_mechanisms.c_str());
-
-			inf_xmpp_manager_add_connection(m_xmpp_manager, xmpp);
-			g_object_unref(xmpp);
-		}
-
-		g_object_unref(connection);
-	}
-
-	// TODO: Check whether there is already an item with this
-	// connection in the browser. If yes, don't add, but highlight for
-	// feedback.
-
-	// TODO: Remove erroneous entry with same name, if any, before
-	// adding.
-
-	if(xmpp != NULL)
-	{
-		inf_gtk_browser_store_add_connection(
-			m_browser_store, INF_XML_CONNECTION(xmpp),
-			hostname.c_str());
-
-		/* TODO: Initial root node expansion for the newly added node.
-		 * This probably requires additional API in
-		 * InfGtkBrowserView */
-	}
-}
-
-void Gobby::Browser::on_resolv_error(ResolvHandle* handle,
-                                     const std::runtime_error& error,
-                                     const Glib::ustring& hostname)
-{
-	ResolvMap::iterator iter = m_resolv_map.find(handle);
-	g_assert(iter != m_resolv_map.end());
-
-	m_status_bar.remove_message(iter->second.message_handle);
-	m_resolv_map.erase(iter);
-
-	m_status_bar.add_error_message(
-		Glib::ustring::compose(_("Could not resolve \"%1\""),
-		                       hostname),
-		error.what());
-}
-
 bool Gobby::Browser::get_selected(InfcBrowser** browser,
                                   InfcBrowserIter* iter)
 {
@@ -409,6 +312,8 @@ void Gobby::Browser::connect_to_host(Glib::ustring str)
 	Glib::ustring host;
 	Glib::ustring service = "6523"; // Default
 	unsigned int device_index = 0; // Default
+	gint iservice;
+	std::stringstream sstr;
 
 	// Strip away device name
 	Glib::ustring::size_type pos;
@@ -455,20 +360,46 @@ void Gobby::Browser::connect_to_host(Glib::ustring str)
 			host = str;
 	}
 
-	ResolvHandle* resolv_handle = resolve(host, service,
-	        sigc::bind(
-			sigc::mem_fun(*this, &Browser::on_resolv_done),
-			host, device_index),
-	        sigc::bind(
-			sigc::mem_fun(*this, &Browser::on_resolv_error),
-			host));
+	sstr << service;
+	sstr >> iservice;
+	InfTcpConnection* connection = inf_tcp_connection_new_from_hostname(
+		INF_IO(m_io),
+		host.c_str(),
+		iservice
+	);
 
-	StatusBar::MessageHandle message_handle =
-		m_status_bar.add_info_message(
-			Glib::ustring::compose(_("Resolving \"%1\"..."),
-			                       host));
+	g_object_set(G_OBJECT(connection),
+		     "device-index", device_index,
+		     NULL);
 
-	m_resolv_map[resolv_handle].message_handle = message_handle;
+	InfXmppConnection* xmpp = inf_xmpp_connection_new(
+		connection, INF_XMPP_CONNECTION_CLIENT,
+		NULL, host.c_str(),
+		m_preferences.security.policy,
+		NULL,
+		m_sasl_context,
+		m_sasl_mechanisms.empty()
+			? ""
+			: m_sasl_mechanisms.c_str());
+
+	/* Check if the connection is already managed
+	 * and suppress it if that is the case. */
+	if(!inf_xmpp_manager_contains_connection(m_xmpp_manager, xmpp))
+	{
+		open_connection(connection, xmpp, &host);
+	}
+	else
+	{
+		m_status_bar.add_error_message(
+			Glib::ustring::compose(
+				_("Already connected to \"%1\""),
+				host),
+			Glib::ustring::compose(
+				_("Connection to \"%1\" suppressed"),
+				host)
+		);
+	}
+	g_object_unref(connection);
 }
 
 void Gobby::Browser::set_sasl_context(InfSaslContext* sasl_context,
@@ -485,6 +416,78 @@ void Gobby::Browser::set_sasl_context(InfSaslContext* sasl_context,
 		"sasl-mechanisms", mechanisms,
 		NULL);
 #endif
+}
+
+void Gobby::Browser::open_connection(InfTcpConnection* connection,
+                                     InfXmppConnection* xmpp,
+                                     const Glib::ustring* host)
+{
+	InfTcpConnectionStatus tcp_status;
+	InfIpAddress* addr;
+	g_return_if_fail(INF_IS_TCP_CONNECTION(connection));
+	g_return_if_fail(INF_IS_XMPP_CONNECTION(xmpp));
+	g_assert(connection != NULL);
+	g_assert(xmpp != NULL);
+	/* The connection must be added to the manager at this point,
+	 * because otherwise a check for multiple connections to the
+	 * same host isn't possible when the connection is opened. */
+	inf_xmpp_manager_add_connection(m_xmpp_manager, xmpp);
+	GError* error = NULL;
+	//try to open the connection (the hostname gets resolved now!)
+	if(!inf_tcp_connection_open(connection, &error))
+	{
+		//the connection itself could not be established
+		inf_xmpp_manager_remove_connection(
+			m_xmpp_manager, xmpp
+		);
+		m_status_bar.add_error_message(
+			Glib::ustring::compose(
+				_("Connection to \"%1\" failed"),
+				*host
+			),
+			error->message
+		);
+		g_error_free(error);
+		return;
+	}
+
+	/* Check if the connection was opened or suppressed.
+	 * It is suppression if and only if the _resolved_
+	 * connection is already managed.
+	 * The suppression check cannot happen before the
+	 * connection is resolved.
+	 * Therefore the connection status must be checked
+	 * for verification. */
+	g_object_get(G_OBJECT(connection),
+		     "status", &tcp_status, NULL);
+	if(tcp_status == INF_TCP_CONNECTION_CONNECTING ||
+	   tcp_status == INF_TCP_CONNECTION_CONNECTED)
+	{
+		/* The connection was successfully established
+		 * and was not already managed. */
+		inf_gtk_browser_store_add_connection(
+			m_browser_store,
+			INF_XML_CONNECTION(xmpp),
+			host->c_str()
+		);
+	}
+	else
+	{
+		//the connection was suppressed
+		inf_xmpp_manager_remove_connection(
+			m_xmpp_manager, xmpp
+		);
+		addr = inf_tcp_connection_get_remote_address(connection);
+		m_status_bar.add_error_message(
+			Glib::ustring::compose(
+				_("Already connected to %1"),
+				inf_ip_address_to_string(addr)),
+			Glib::ustring::compose(
+				_("Connection to \"%1\" suppressed"),
+				*host)
+		);
+	}
+	g_object_unref(xmpp);
 }
 
 void Gobby::Browser::on_security_policy_changed()
