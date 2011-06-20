@@ -21,16 +21,20 @@
 #include "util/gtk-compat.hpp"
 #include "util/file.hpp"
 #include "util/i18n.hpp"
+#include "core/pinningentry.hpp"
 
 #include <libinfinity/inf-config.h>
 
 #include <gtkmm/stock.h>
 #include <gtkmm/image.h>
+#include <iostream>
 
 #ifndef G_OS_WIN32
 # include <sys/socket.h>
 # include <net/if.h>
 #endif
+
+
 
 gint compare_func(GtkTreeModel* model, GtkTreeIter* first, GtkTreeIter* second, gpointer user_data)
 {
@@ -40,6 +44,7 @@ gint compare_func(GtkTreeModel* model, GtkTreeIter* first, GtkTreeIter* second, 
 	InfcBrowserIter* bri_one;
 	InfcBrowserIter* bri_two;
 	GtkTreeIter parent;
+	
 
 	result = 0;
 	if(gtk_tree_model_iter_parent(model, &parent, first))
@@ -105,7 +110,8 @@ gint compare_func(GtkTreeModel* model, GtkTreeIter* first, GtkTreeIter* second, 
 Gobby::Browser::Browser(Gtk::Window& parent,
                         const InfcNotePlugin* text_plugin,
                         StatusBar& status_bar,
-                        Preferences& preferences):
+                        Preferences& preferences,
+                        Pinning& pinning):
 	m_parent(parent),
 	m_text_plugin(text_plugin),
 	m_status_bar(status_bar),
@@ -114,12 +120,15 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	m_expander(_("_Direct Connection"), true),
 	m_hbox(false, 6),
 	m_label_hostname(_("Host Name:")),
-	m_entry_hostname(config_filename("recent_hosts"), 5)
+	m_entry_hostname(config_filename("recent_hosts"), 5),
+	m_pinning(pinning),
+	m_renderer(m_pinning)
 {
 	m_label_hostname.show();
 	m_entry_hostname.get_entry()->signal_activate().connect(
 		sigc::mem_fun(*this, &Browser::on_hostname_activate));
 	m_entry_hostname.show();
+
 
 	m_hbox.pack_start(m_label_hostname, Gtk::PACK_SHRINK);
 	m_hbox.pack_start(m_entry_hostname, Gtk::PACK_EXPAND_WIDGET);
@@ -195,12 +204,20 @@ Gobby::Browser::Browser(Gtk::Window& parent,
 	pack_start(m_expander, Gtk::PACK_SHRINK);
 
 	set_focus_child(m_expander);
+
+	inf_gtk_browser_view_set_status_cell_renderer(m_browser_view, (GtkCellRenderer*)m_renderer.gobj());
+	
+	Gtk::TreeViewColumn *col = Glib::wrap(inf_gtk_browser_view_get_column(m_browser_view));
+	
+	col->set_cell_data_func(m_renderer, sigc::bind(sigc::mem_fun(&m_renderer, &Gobby::CellRendererPixbuf::status_icon_data_func), m_sort_model));
+	
 }
 
 Gobby::Browser::~Browser()
 {
 	if(m_sasl_context)
 		inf_sasl_context_unref(m_sasl_context);
+
 
 	g_object_unref(m_browser_store);
 	g_object_unref(m_sort_model);
@@ -210,6 +227,29 @@ Gobby::Browser::~Browser()
 	g_object_unref(m_discovery);
 #endif
 	g_object_unref(m_io);
+}
+
+void Gobby::Browser::load_pinning_entries()
+{
+	// TODO: load pinning entries
+	m_pinning.set_sasl_context(m_sasl_context);
+	m_pinning.load_saved_connections();
+
+	std::list<InfXmppConnection*> saved_connections
+	  = m_pinning.get_saved_connections();
+	for(std::list<InfXmppConnection*>::iterator it = saved_connections.begin();
+	    it != saved_connections.end();
+			++it)
+	{
+		PinningEntry* pentry = m_pinning.get_entry(*it);
+		g_assert(pentry != NULL);
+		inf_xmpp_manager_add_connection(m_xmpp_manager,INF_XMPP_CONNECTION(*it));
+		inf_gtk_browser_store_add_connection(
+			m_browser_store,
+			INF_XML_CONNECTION(*it),
+			pentry->get_property(PinningEntry::HOST).c_str());
+	}
+
 }
 
 void Gobby::Browser::on_expanded_changed()

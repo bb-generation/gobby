@@ -121,10 +121,10 @@ void Gobby::AuthCommands::sasl_callback(InfSaslContextSession* session,
 	case GSASL_PASSWORD:
 		{
 			RetryMap::iterator i = m_retries.find(xmpp);
+			SavedPasswordMap::iterator savedPassword = m_savedPasswords.find(xmpp);
 			if(i == m_retries.end())
 				i = insert_retry_info(xmpp);
 			RetryInfo& info(i->second);
-
 			if(!info.last_password.empty())
 			{
 				inf_sasl_context_session_set_property(
@@ -133,6 +133,14 @@ void Gobby::AuthCommands::sasl_callback(InfSaslContextSession* session,
 
 				inf_sasl_context_session_continue(session,
 				                                  GSASL_OK);
+			}
+			else if(savedPassword != m_savedPasswords.end() && !savedPassword->second.empty())
+			{
+				inf_sasl_context_session_set_property(
+						session, GSASL_PASSWORD,
+						savedPassword->second.c_str());
+
+				inf_sasl_context_session_continue(session,GSASL_OK);
 			}
 			else
 			{
@@ -182,7 +190,10 @@ void Gobby::AuthCommands::on_response(int response_id,
 	RetryInfo& info(i->second);
 
 	if(response_id == Gtk::RESPONSE_ACCEPT)
+	{
 		info.last_password = info.password_dialog->get_password();
+		set_saved_password(xmpp,info.password_dialog->get_password());
+	}
 	else
 		info.last_password = "";
 
@@ -321,6 +332,29 @@ void Gobby::AuthCommands::on_notify_status(InfXmppConnection* connection)
 		RetryMap::iterator iter = m_retries.find(connection);
 		g_signal_handler_disconnect(connection, iter->second.handle);
 		delete iter->second.password_dialog;
-		m_retries.erase(iter);
+		m_retries.erase(iter); // TODO: does this cause troubles?!
 	}
 }
+
+Glib::ustring
+Gobby::AuthCommands::get_saved_password(InfXmppConnection* connection)
+{
+	SavedPasswordMap::iterator i = m_savedPasswords.find(connection);
+	if(i == m_savedPasswords.end())
+	{
+		return "";
+	}
+	else
+	{
+		return i->second;
+	}
+}
+
+void
+Gobby::AuthCommands::set_saved_password(InfXmppConnection* connection,
+                                        Glib::ustring password)
+{
+	m_savedPasswords.insert(std::make_pair<InfXmppConnection*,
+			Glib::ustring>(connection, password));
+}
+

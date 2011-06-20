@@ -40,11 +40,12 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 	m_argc(argc), m_argv(argv), m_config(config),
 	m_lang_manager(gtk_source_language_manager_get_default()),
 	m_preferences(m_config), m_icon_mgr(icon_mgr),
+	m_pinning(m_preferences),
 #ifdef WITH_UNIQUE
 	m_app(app),
 #endif
 	m_header(m_preferences, m_lang_manager),
-	m_browser(*this, Plugins::TEXT, m_statusbar, m_preferences),
+	m_browser(*this, Plugins::TEXT, m_statusbar, m_preferences, m_pinning),
 	m_text_folder(false, m_preferences, m_lang_manager),
 	m_chat_folder(true, m_preferences, m_lang_manager),
 	m_chat_frame(_("Chat"), IconManager::STOCK_CHAT,
@@ -81,12 +82,13 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 	g_signal_connect(app, "message-received",
 	                 G_CALLBACK(on_message_received_static), this);
 #endif // WITH_UNIQUE
-
 	m_chat_frame.signal_show().connect(
 		sigc::mem_fun(*this, &Window::on_chat_show), true);
 	m_chat_frame.signal_hide().connect(
 		sigc::mem_fun(*this, &Window::on_chat_hide), false);
 
+	m_pinning.init(&m_auth_commands);
+	m_browser.load_pinning_entries();
 	m_header.show();
 	m_browser.show();
 	m_text_folder.show();
@@ -146,6 +148,7 @@ Gobby::Window::Window(unsigned int argc, const char* const argv[],
 
 	set_default_size(800, 600);
 	set_role("Gobby");
+
 }
 
 Gobby::Window::~Window()

@@ -21,6 +21,7 @@
 
 #include "core/statusbar.hpp"
 #include "core/preferences.hpp"
+#include "core/pinning.hpp"
 #include "util/historyentry.hpp"
 
 #include <libinfgtk/inf-gtk-io.h>
@@ -55,7 +56,8 @@ public:
 	Browser(Gtk::Window& parent,
 	        const InfcNotePlugin* text_plugin,
 	        StatusBar& status_bar,
-	        Preferences& preferences);
+	        Preferences& preferences,
+	        Pinning& pinning);
 	~Browser();
 
 	InfGtkBrowserModelSort* get_store() { return m_sort_model; }
@@ -75,6 +77,7 @@ public:
 
 	SignalActivate signal_activate() const { return m_signal_activate; }
 
+	void load_pinning_entries();
 protected:
 	static void on_set_browser_static(InfGtkBrowserModel* model,
 	                                  GtkTreePath* path,
@@ -109,6 +112,9 @@ protected:
 	void on_security_policy_changed();
 	void on_trust_file_changed();
 
+
+	
+
 	Gtk::Window& m_parent;
 	const InfcNotePlugin* m_text_plugin;
 	StatusBar& m_status_bar;
@@ -134,6 +140,10 @@ protected:
 	SignalActivate m_signal_activate;
 
 	InfGtkBrowserModelSort* m_sort_model;
+
+	Pinning& m_pinning;
+
+	CellRendererPixbuf m_renderer;
 };
 
 }

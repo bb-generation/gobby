@@ -36,6 +36,8 @@ namespace Gobby
 		static Gtk::StockID STOCK_DOCLIST;
 		static Gtk::StockID STOCK_CHAT;
 		static Gtk::StockID STOCK_USER_COLOR_INDICATOR;
+		static Gtk::StockID STOCK_SERVER_STARRED;
+		static Gtk::StockID STOCK_SERVER_UNSTARRED;
 
 		IconManager();
 
@@ -45,6 +47,8 @@ namespace Gobby
 		GtkCompat::IconSet m_is_doclist;
 		GtkCompat::IconSet m_is_chat;
 		GtkCompat::IconSet m_is_user_color_indicator;
+		GtkCompat::IconSet m_is_starred;
+		GtkCompat::IconSet m_is_unstarred;
 
 		Glib::RefPtr<Gtk::IconFactory> m_icon_factory;
 	};

@@ -1,4 +1,4 @@
 icondir = $(datadir)/gobby-0.5/icons/hicolor/48x48/actions
-icon_DATA = chat.png document-list.png user-list.png
+icon_DATA = chat.png document-list.png user-list.png starred.png unstarred.png
 
 EXTRA_DIST = $(icon_DATA)

@@ -159,6 +159,10 @@ public:
 		 */
 		virtual void save(xmlpp::Element& elem) const;
 
+		/** @brief Deletes all children of this ParentEntry
+		 */
+		void clear();
+
 		/** @brief Returns a child entry with the given name.
 		 *
 		 * Returns NULL if there is no such child.
