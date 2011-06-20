@@ -402,6 +402,14 @@ void Gobby::Browser::connect_to_host(Glib::ustring str)
 
 	sstr << service;
 	sstr >> iservice;
+
+	if(iservice == 0){
+		iservice=6523;
+		m_status_bar.add_info_message(
+				_("Substituted port to default port: 6523"), 5
+		);
+	}
+
 	InfTcpConnection* connection = inf_tcp_connection_new_from_hostname(
 		INF_IO(m_io),
 		host.c_str(),
