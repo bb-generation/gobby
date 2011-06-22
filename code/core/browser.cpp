@@ -231,7 +231,6 @@ Gobby::Browser::~Browser()
 
 void Gobby::Browser::load_pinning_entries()
 {
-	// TODO: load pinning entries
 	m_pinning.set_sasl_context(m_sasl_context);
 	m_pinning.load_saved_connections();
 
@@ -243,11 +242,14 @@ void Gobby::Browser::load_pinning_entries()
 	{
 		PinningEntry* pentry = m_pinning.get_entry(*it);
 		g_assert(pentry != NULL);
-		inf_xmpp_manager_add_connection(m_xmpp_manager,INF_XMPP_CONNECTION(*it));
-		inf_gtk_browser_store_add_connection(
-			m_browser_store,
-			INF_XML_CONNECTION(*it),
-			pentry->get_property(PinningEntry::HOST).c_str());
+		if(!inf_xmpp_manager_contains_connection(m_xmpp_manager,INF_XMPP_CONNECTION(*it)))
+		{
+			inf_xmpp_manager_add_connection(m_xmpp_manager,INF_XMPP_CONNECTION(*it));
+			inf_gtk_browser_store_add_connection(
+				m_browser_store,
+				INF_XML_CONNECTION(*it),
+				pentry->get_property(PinningEntry::HOST).c_str());
+		}
 	}
 
 }
